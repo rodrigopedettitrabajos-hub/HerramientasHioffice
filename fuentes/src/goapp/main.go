@@ -33,6 +33,7 @@ import (
 var page []byte
 
 const appID = "herramientas-hioffice"
+
 var basePort = 8765 // HIO_PORT lo cambia (sólo para pruebas)
 const maxBody = 60 << 20
 
@@ -85,10 +86,18 @@ func cleanOld() {
 		return
 	}
 	ext := filepath.Ext(exePath)
-	old := strings.TrimSuffix(exePath, ext) + ".old" + ext
+	// Herramientas_HiOffice.old.exe y las de nombre alternativo (.old<número>.exe).
+	patron := strings.TrimSuffix(exePath, ext) + ".old*" + ext
 	// Rápido al principio; si sigue en uso (la versión vieja todavía abierta, el antivirus), reintenta cada minuto.
 	for i := 0; ; i++ {
-		if err := os.Remove(old); err == nil || os.IsNotExist(err) {
+		viejos, _ := filepath.Glob(patron)
+		quedan := 0
+		for _, v := range viejos {
+			if err := os.Remove(v); err != nil && !os.IsNotExist(err) {
+				quedan++
+			}
+		}
+		if quedan == 0 {
 			return
 		}
 		if i < 20 {
