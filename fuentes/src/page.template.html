@@ -1717,8 +1717,13 @@ async function onHelperReady(info){
   $('btnNov').textContent = '★ Novedades · ' + ver; $('btnNov').classList.remove('hidden');
   // Después de actualizarse, muestra una vez lo nuevo de esta versión.
   try { const vista = localStorage.getItem('hio.version'); localStorage.setItem('hio.version', ver); if (vista && vista !== ver && ver !== 'dev') openNovedades(); } catch(e){}
-  showUpd(HELPER.info);
-  setInterval(() => fetch('/__helper/ping', { cache: 'no-store' }).then(r => r.json()).then(showUpd).catch(() => {}), 20000);
+  // Al abrir el programa, si GitHub tiene una versión nueva se instala sola (sólo el primer minuto, para no cortar un trabajo a medias).
+  const abierto = Date.now(); let autoUpd = false;
+  const checkUpd = j => { showUpd(j); if (j && j.nueva && !autoUpd && Date.now() - abierto < 60000) { autoUpd = true; $('btnRestart').onclick(); } };
+  checkUpd(HELPER.info);
+  const ping = () => fetch('/__helper/ping', { cache: 'no-store' }).then(r => r.json()).then(checkUpd).catch(() => {});
+  setTimeout(ping, 4000); setTimeout(ping, 10000);
+  setInterval(ping, 20000);
   // Nombres de columnas guardados en archivo (y migración de los que había en el navegador)
   const names = await storeGet('names');
   if (names && typeof names === 'object') USER = Object.assign({}, USER, names); 
