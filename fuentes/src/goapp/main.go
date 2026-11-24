@@ -55,7 +55,7 @@ func updateAvailable() bool {
 		return false
 	}
 	fi, err := os.Stat(exePath)
-	return err == nil && (fi.Size() != exeStamp.Size() || !fi.ModTime().Equal(exeStamp.ModTime()))
+	return newRelease() || err == nil && (fi.Size() != exeStamp.Size() || !fi.ModTime().Equal(exeStamp.ModTime()))
 }
 
 func handleRestart(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +65,10 @@ func handleRestart(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, err := os.Stat(exePath); err != nil {
 		writeJSON(w, 200, map[string]string{"error": "No encuentro el programa en " + exePath})
+		return
+	}
+	if err := applyRelease(); err != nil {
+		writeJSON(w, 200, map[string]string{"error": "No se pudo bajar la versión nueva: " + err.Error()})
 		return
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
@@ -152,7 +156,7 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 	// Sin cabeceras CORS: otras webs no pueden leer el token.
 	writeJSON(w, 200, map[string]any{"ok": true, "app": appID, "token": token, "version": 2, "exe": true,
-		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "db": db != nil})
+		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "appVersion": version, "db": db != nil})
 }
 
 type relayReq struct {
@@ -309,10 +313,15 @@ func writeAtomic(p string, b []byte) error {
 }
 
 // ---- Contraseña recordada (cifrada con DPAPI de Windows) ----
-const secretFile = "credencial.bin"
+var secretFiles = map[string]string{"": "credencial.bin", "migrate": "credencial_migrate.bin"}
 
 func handleSecret(w http.ResponseWriter, r *http.Request) {
-	p := filepath.Join(dataDir, secretFile)
+	file, ok := secretFiles[r.URL.Query().Get("key")]
+	if !ok {
+		writeJSON(w, 400, map[string]string{"error": "clave desconocida"})
+		return
+	}
+	p := filepath.Join(dataDir, file)
 	switch r.Method {
 	case http.MethodGet:
 		b, err := os.ReadFile(p)
@@ -463,6 +472,7 @@ func main() {
 		log.SetOutput(lf) // sólo al archivo: sin consola (windowsgui) escribir en stderr falla y cortaba el registro
 	}
 	go cleanOld()
+	go watchReleases()
 	if err := openDB(); err != nil {
 		log.Printf("No se pudo abrir la base de datos: %v", err)
 	}
@@ -475,6 +485,7 @@ func main() {
 	mux.HandleFunc("/__helper/quit", guard(handleQuit, true))
 	mux.HandleFunc("/__helper/restart", guard(handleRestart, true))
 	mux.HandleFunc("/__helper/db", guard(handleDB, true))
+	mux.HandleFunc("/__helper/migrate", guard(handleMigrate, true))
 	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	addr := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	log.Printf("Herramientas HiOffice en %s (datos: %s)", addr, dataDir)

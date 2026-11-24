@@ -50,7 +50,12 @@ Antes de compilar, comprobar la sintaxis de los `<script>` sin `type` con `new F
 - Exe de prueba con `HIO_PORT=8790`, `HIO_NO_BROWSER=1`, `HIO_DATA_DIR=<carpeta temporal>` para no pisar el del usuario (puerto 8765).
 - Abrirlo en el navegador integrado (`http://127.0.0.1:8790/`). Al terminar, cerrar el proceso de `fuentes\dist`.
 
-## Instalar una versión nueva
+## Publicar y actualizar
+
+Cada merge a `main` que toque `fuentes/` corre `.github/workflows/publicar.yml`: prueba, compila con `-X main.version=<etiqueta>` y publica el `.exe` como versión en GitHub. El programa publicado revisa al abrir (y cada 6 h) la última versión; si hay otra, aparece el aviso y **↻ Reiniciar y actualizar** la baja, deja la actual como `.old.exe` y reabre. Las compilaciones locales (versión `dev`) no se actualizan solas.
+La clave del socio de Migrate no va en el exe (el repo es público): cada usuario la escribe una vez en "Traer desde Migrate" y queda cifrada con DPAPI.
+
+## Instalar una versión nueva a mano
 
 1. Si el exe de la carpeta principal está abierto: borrar `Herramientas_HiOffice.old.exe` si existe y renombrar el exe actual a `.old.exe`.
 2. Copiar `dist/Herramientas_HiOffice.exe` y `.html` a la carpeta principal.

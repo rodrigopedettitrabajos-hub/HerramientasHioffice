@@ -1,0 +1,35 @@
+# Cada cambio en main que toque fuentes/ arma el .exe y lo publica como versión nueva.
+# El programa instalado la ve y ofrece "↻ Reiniciar y actualizar".
+name: Publicar versión
+on:
+  push:
+    branches: [main]
+    paths: ['fuentes/**', '.github/workflows/publicar.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: fuentes/src/goapp/go.mod
+          cache-dependency-path: fuentes/src/goapp/go.sum
+      - name: Probar
+        run: |
+          cd fuentes && node build.js . && node --test tests/prueba_csv.js
+          cd src/goapp && go test ./...
+      - name: Compilar y publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTAS: ${{ github.event.head_commit.message }}
+        run: |
+          TAG="v$(date -u +%Y.%m.%d)-${{ github.run_number }}"
+          cd fuentes/src/goapp
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o Herramientas_HiOffice.exe .
+          gh release create "$TAG" Herramientas_HiOffice.exe ../../dist/Herramientas_HiOffice.html --title "$TAG" --notes "$NOTAS"

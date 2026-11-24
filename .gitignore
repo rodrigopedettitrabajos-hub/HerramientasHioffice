@@ -11,3 +11,5 @@ fuentes/dist/
 /Herramientas_HiOffice.html
 # Lo genera build.js y lo embebe //go:embed
 fuentes/src/goapp/Herramientas_HiOffice.html
+# Clave del socio de Migrate de una versión vieja: no subirla nunca (el repo es público)
+fuentes/src/goapp/secretos/clave_socio.txt
