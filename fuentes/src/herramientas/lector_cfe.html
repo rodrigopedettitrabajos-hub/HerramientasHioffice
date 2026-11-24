@@ -27,7 +27,7 @@ button:hover,.btn:hover{background:var(--hover)}
 button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 button.primary:hover,.btn.primary:hover{filter:brightness(1.08)}
 button:disabled{opacity:.5;cursor:default}
-input[type=date],input[type=text]{font:inherit;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel);color:var(--ink)}
+input[type=date],input[type=text],input[type=password]{font:inherit;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel);color:var(--ink)}
 label.lbl{color:var(--muted)}
 .spacer{flex:1}
 .note{color:var(--muted);font-size:12.5px}
@@ -108,6 +108,7 @@ input[type=file]{display:none}
     <label class="btn" for="inFiles">Elegir archivos…</label>
     <input type="file" id="inFiles" multiple accept=".xml,text/xml">
     <input type="file" id="inAn" accept=".csv,text/csv,.txt">
+    <button id="btnMig" style="display:none">Traer desde Migrate…</button>
     <span class="note" id="origen"></span>
     <span class="spacer"></span>
     <button id="btnCols" disabled>Elegir columnas…</button>
@@ -136,6 +137,22 @@ input[type=file]{display:none}
   </div>
 </main>
 <div class="status"><span id="status">Sin datos cargados.</span><progress id="prog" style="display:none" max="100" value="0"></progress></div>
+
+<div class="modal-bg" id="mig">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="migTit">
+    <h3 id="migTit">Traer CFE emitidos desde Migrate</h3>
+    <div class="body" id="migForm">
+      <label class="lbl" for="migCod" style="display:block">Código de empresa</label><input type="text" id="migCod" inputmode="numeric" autocomplete="off">
+      <label class="lbl" for="migCk" style="display:block">Clave de comunicación</label><input type="password" id="migCk" autocomplete="off">
+      <label><input type="checkbox" id="migRec" checked> Recordar en este equipo</label>
+      <div class="row"><label class="lbl" for="migDesde">Desde</label><input type="date" id="migDesde"><label class="lbl" for="migHasta">Hasta</label><input type="date" id="migHasta"></div>
+      <p class="note">Filtra por la fecha en que el CFE entró a Migrate (normalmente el mismo día de emisión).</p>
+      <p class="note" id="migMsg" role="status"></p>
+    </div>
+    <div class="body" id="migSuc" style="display:none"></div>
+    <div class="foot"><span class="spacer"></span><button id="migCerrar">Cerrar</button><button class="primary" id="migOk">Traer</button></div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modal">
   <div class="modal" role="dialog" aria-modal="true">
@@ -305,6 +322,59 @@ async function cargar(files,origen){
 
 $("inDir").addEventListener("change",e=>{const f=[...e.target.files];if(f.length){const p=(f[0].webkitRelativePath||"").split("/")[0];cargar(f,"Carpeta: "+p+" ("+f.length+" archivos)");}e.target.value="";});
 $("inFiles").addEventListener("change",e=>{const f=[...e.target.files];if(f.length)cargar(f,f.length+" archivos seleccionados");e.target.value="";});
+
+// ======================================================= Traer desde Migrate (solo con el programa .exe)
+const MIG={token:"",xmls:null};
+async function migApi(path,opt){
+  opt=opt||{};opt.headers=Object.assign({"X-Helper-Token":MIG.token,"Content-Type":"application/json"},opt.headers);
+  return (await fetch(path,opt)).json();
+}
+(async()=>{
+  try{const j=await (await fetch("/__helper/ping",{cache:"no-store"})).json();if(!j.ok||!j.exe)return;MIG.token=j.token;}catch(e){return;}
+  $("btnMig").style.display="";
+})();
+$("btnMig").onclick=async()=>{
+  MIG.xmls=null;$("migForm").style.display="";$("migSuc").style.display="none";$("migOk").textContent="Traer";$("migMsg").textContent="";
+  if(!$("migDesde").value){const h=new Date(),d=new Date(h.getFullYear(),h.getMonth()-1,1),f=x=>x.toLocaleDateString("sv");$("migDesde").value=f(d);$("migHasta").value=f(new Date(h.getFullYear(),h.getMonth(),0));}
+  $("mig").classList.add("open");
+  try{const j=await migApi("/__helper/secret?key=migrate");if(j.value){const c=JSON.parse(j.value);$("migCod").value=c.codigo||"";$("migCk").value=c.clave||"";}}catch(e){}
+};
+$("migCerrar").onclick=()=>$("mig").classList.remove("open");
+const sucDe=x=>{const m=t=>{const r=new RegExp("<(?:\\w+:)?"+t+">([^<]*)<").exec(x);return r?r[1].trim():"";};const c=m("CdgDGISucursal"),n=m("EmiSucursal");return c&&n?c+" - "+n:(c||n||"(sin sucursal)");};
+$("migOk").onclick=async()=>{
+  if(MIG.xmls)return migCargar();
+  const q={codigo:$("migCod").value.trim(),clave:$("migCk").value.trim(),desde:$("migDesde").value,hasta:$("migHasta").value};
+  const msg=$("migMsg");
+  if(!q.codigo||!q.clave||!q.desde||!q.hasta){msg.textContent="Complete código, clave y fechas.";return;}
+  $("migOk").disabled=true;
+  try{
+    const xmls=[];let total=0;
+    for(let p=1;;p++){
+      msg.textContent="Descargando página "+p+(total?" ("+xmls.length+" de "+total+" CFE)":"")+"…";
+      const j=await migApi("/__helper/migrate",{method:"POST",body:JSON.stringify(Object.assign({pagina:p},q))});
+      if(j.error)throw new Error(j.error);
+      if(!(j.cfe||[]).length){if(p===1&&j.msgDsc&&!j.total)throw new Error("Migrate: "+j.msgCod+" - "+j.msgDsc);break;}
+      total=j.total||0;
+      for(const c of j.cfe)if(c.xml)xmls.push({name:c.tipo+"-"+c.serie+"-"+c.numero+".xml",xml:c.xml});
+      if(xmls.length>=total||p>=1000)break;
+    }
+    await migApi("/__helper/secret?key=migrate",{method:"PUT",body:JSON.stringify({value:$("migRec").checked?JSON.stringify({codigo:q.codigo,clave:q.clave}):""})});
+    if(!xmls.length){msg.textContent="No hay CFE emitidos en ese rango.";return;}
+    MIG.xmls=xmls;MIG.rango=q.desde+" a "+q.hasta;
+    const suc=new Map();for(const x of xmls){x.suc=sucDe(x.xml);suc.set(x.suc,(suc.get(x.suc)||0)+1);}
+    if(suc.size<2)return migCargar();
+    $("migSuc").innerHTML="<p>Se descargaron "+xmls.length+" CFE. Elija las sucursales:</p>"+[...suc].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,n])=>`<label><input type="checkbox" value="${esc(k)}" checked> ${esc(k)} <span class="note">(${n})</span></label>`).join("");
+    $("migForm").style.display="none";$("migSuc").style.display="";$("migOk").textContent="Cargar";
+  }catch(e){msg.textContent=e.message;}
+  finally{$("migOk").disabled=false;}
+};
+function migCargar(){
+  const sel=new Set([...$("migSuc").querySelectorAll("input:checked")].map(i=>i.value));
+  const xs=MIG.xmls.filter(x=>$("migSuc").style.display==="none"||sel.has(x.suc));
+  if(!xs.length){alert("Elija al menos una sucursal.");return;}
+  $("mig").classList.remove("open");
+  cargar(xs.map(x=>new File([x.xml],x.name,{type:"text/xml"})),"Migrate: "+MIG.rango+" ("+xs.length+" CFE)");
+}
 
 // arrastrar y soltar carpetas
 async function leerEntry(entry,out){

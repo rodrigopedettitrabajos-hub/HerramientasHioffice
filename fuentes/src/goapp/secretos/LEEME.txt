@@ -1,0 +1,2 @@
+Poner aquí clave_socio.txt con la "Clave del socio" (EmpPK) de Migrate/Invoicy antes de compilar.
+Ese archivo no se sube al repositorio (.gitignore). Sin él, "Traer desde Migrate" avisa que falta.

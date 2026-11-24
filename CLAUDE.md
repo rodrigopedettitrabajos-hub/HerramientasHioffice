@@ -42,6 +42,7 @@ cd src/goapp && CGO_ENABLED=0 "/c/Program Files/Go/bin/go.exe" build -trimpath -
 ```
 
 `build.js` mete en el HTML: `__TPL_EXPORT__`, `__TPL_DASH__`, `__DICT__`, `__TOOL_CFE__`, `__TOOL_LIQ__`. Escribe el resultado en `dist/` y en `src/goapp/` (lo embebe `//go:embed`). Ese HTML no está en el repo: en un clon nuevo hay que correr `node build.js .` antes de `go build`.
+La "Clave del socio" de Migrate (para "Traer desde Migrate" en el Lector de CFE) se embebe desde `src/goapp/secretos/clave_socio.txt`, que no va al repo (es público). Sin ese archivo el programa compila, pero la descarga avisa que falta.
 Antes de compilar, comprobar la sintaxis de los `<script>` sin `type` con `new Function(...)` en Node.
 
 ## Probar
