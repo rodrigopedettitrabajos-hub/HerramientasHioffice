@@ -103,15 +103,15 @@ input[type=file]{display:none}
 <header>
   <div class="row">
     <h1>Lector de CFE</h1>
-    <label class="btn primary" for="inDir">Elegir carpeta de XML…</label>
+    <label class="btn primary" for="inDir">Elegir carpeta de XML</label>
     <input type="file" id="inDir" webkitdirectory directory multiple>
-    <label class="btn" for="inFiles">Elegir archivos…</label>
+    <label class="btn" for="inFiles">Elegir archivos</label>
     <input type="file" id="inFiles" multiple accept=".xml,text/xml">
     <input type="file" id="inAn" accept=".csv,text/csv,.txt">
-    <button id="btnMig" style="display:none">Traer desde Migrate…</button>
+    <button id="btnMig" style="display:none">Traer desde Migrate</button>
     <span class="note" id="origen"></span>
     <span class="spacer"></span>
-    <button id="btnCols" disabled>Elegir columnas…</button>
+    <button id="btnCols" disabled>Elegir columnas</button>
     <button id="btnCsv" disabled>Exportar pestaña (CSV)</button>
     <button id="btnXlsx" disabled>Exportar todo a Excel</button>
   </div>
@@ -130,7 +130,7 @@ input[type=file]{display:none}
 <main id="main">
   <div class="empty" id="empty">
     <h2>Lector de Comprobantes Fiscales Electrónicos</h2>
-    <p>Elija la carpeta que contiene los archivos XML de CFE con el botón <b>Elegir carpeta de XML…</b>, o arrástrela a este recuadro.</p>
+    <p>Elija la carpeta que contiene los archivos XML de CFE con el botón <b>Elegir carpeta de XML</b>, o arrástrela a este recuadro.</p>
     <div class="drop">Suelte aquí la carpeta o los archivos XML</div>
     <p class="note" style="margin-top:18px">Los archivos se procesan en esta computadora: no se envían a internet.<br>
     Si el navegador pregunta si desea “subir” los archivos, acepte: es solo para que esta página pueda leerlos.</p>
@@ -1037,7 +1037,7 @@ function renderConc(){
       <ul><li><b>Anular en DGI</b>: comprobantes duplicados o que están en DGI pero no en el sistema (se genera la nota de crédito, o el documento inverso).</li>
       <li><b>Enviar a DGI</b>: comprobantes del sistema que nunca se fiscalizaron (por ejemplo, serie TX).</li></ul>
       <p>Se usa el período de los filtros <b>Desde / Hasta</b>.</p>
-      <p style="margin-top:14px"><label class="btn primary" for="inAn">Cargar exportación del sistema (Analytics.csv)…</label></p>
+      <p style="margin-top:14px"><label class="btn primary" for="inAn">Cargar exportación del sistema (Analytics.csv)</label></p>
     </div></div>`;
     return;
   }
@@ -1055,7 +1055,7 @@ function renderConc(){
   let h=`<div class="wrap"><div class="conc">
   <div class="row"><h2 style="margin:0">Conciliación con el sistema</h2><span class="spacer"></span>
     <span class="note">Sistema: ${esc(S.an.nombre)} (${fmtN(S.an.docs.size,0)} comprobantes) · Período: ${fmtD(R.desde)} al ${fmtD(R.hasta)}</span>
-    <label class="btn" for="inAn">Cambiar archivo…</label></div>
+    <label class="btn" for="inAn">Cambiar archivo</label></div>
   ${S.an.sinFecha.length?`<div class="avisos"><b>Atención:</b> ${S.an.sinFecha.length} comprobantes del sistema tienen una fecha que no se pudo leer y quedan fuera del período: ${esc(S.an.sinFecha.slice(0,10).join(", "))}${S.an.sinFecha.length>10?"…":""}. Revise la columna Fecha Doc del archivo.</div>`:""}
   <div class="cards">
     <div class="card"><div class="k">Total en DGI (XML)</div><div class="v">${fmtM(R.totD)}</div><div class="k">${fmtN(R.dgi.length,0)} comprobantes</div></div>
