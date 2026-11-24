@@ -11,6 +11,7 @@ import (
 	neturl "net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -103,10 +104,20 @@ func applyRelease() error {
 		return err
 	}
 	old := strings.TrimSuffix(exePath, ".exe") + ".old.exe"
-	os.Remove(old)
-	if err := os.Rename(exePath, old); err != nil {
+	// Si el .old.exe anterior sigue bloqueado (abierto, OneDrive, antivirus), usa otro nombre; cleanOld borra todos.
+	if err := os.Remove(old); err != nil && !os.IsNotExist(err) {
+		old = strings.TrimSuffix(exePath, ".exe") + ".old" + strconv.FormatInt(time.Now().Unix(), 10) + ".exe"
+	}
+	var err2 error
+	for i := 0; i < 10; i++ {
+		if err2 = os.Rename(exePath, old); err2 == nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	if err2 != nil {
 		os.Remove(nuevo)
-		return err
+		return err2
 	}
 	if err := os.Rename(nuevo, exePath); err != nil {
 		os.Rename(old, exePath)
