@@ -350,16 +350,19 @@ $("migOk").onclick=async()=>{
   if(!q.codigo||!q.clave||!q.socio||!q.desde||!q.hasta){msg.textContent="Complete el código de integración, las claves y las fechas.";return;}
   $("migOk").disabled=true;MIG.bajando=true;MIG.parar=false;$("migCerrar").textContent="Detener";
   try{
-    const xmls=[];let total=0;
-    for(let p=1;!MIG.parar;p++){
-      msg.textContent="Descargando página "+p+(total?" ("+xmls.length+" de "+total+" CFE)":"")+"…";
-      const j=await migApi("/__helper/migrate",{method:"POST",body:JSON.stringify(Object.assign({pagina:p},q))});
-      if(j.error)throw new Error(j.error);
-      if(!(j.cfe||[]).length){if(p===1&&j.msgDsc&&!j.total)throw new Error("Migrate: "+j.msgCod+" - "+j.msgDsc);break;}
-      total=j.total||0;
-      for(const c of j.cfe)if(c.xml)xmls.push({name:c.tipo+"-"+c.serie+"-"+c.numero+".xml",xml:c.xml});
-      if(xmls.length>=total||p>=1000)break;
-    }
+    // Página 1 sola (da el total y el tamaño de página); el resto, de a varias a la vez.
+    const pagina=async p=>{for(let i=0;;i++){const j=await migApi("/__helper/migrate",{method:"POST",body:JSON.stringify(Object.assign({pagina:p},q))});
+      if(!j.error)return j; if(i>=2)throw new Error("Página "+p+": "+j.error); await new Promise(r=>setTimeout(r,1500*(i+1)));}};
+    msg.textContent="Descargando página 1…";
+    const j1=await pagina(1);
+    if(!(j1.cfe||[]).length&&j1.msgDsc&&!j1.total)throw new Error("Migrate: "+j1.msgCod+" - "+j1.msgDsc);
+    const total=j1.total||0, porPag=(j1.cfe||[]).length||1, nPag=Math.min(1000,Math.ceil(total/porPag));
+    const res=[j1.cfe||[]];let hechas=1,bajados=res[0].length,sig=2;
+    const trabajador=async()=>{while(!MIG.parar&&sig<=nPag){const p=sig++;const j=await pagina(p);res[p-1]=j.cfe||[];hechas++;bajados+=res[p-1].length;
+      msg.textContent="Descargando: "+bajados+" de "+total+" CFE ("+hechas+" de "+nPag+" páginas)…";}};
+    await Promise.all(Array.from({length:8},trabajador)); // 8 consultas a la vez
+    const xmls=[];
+    for(const l of res)for(const c of l||[])if(c.xml)xmls.push({name:c.tipo+"-"+c.serie+"-"+c.numero+".xml",xml:c.xml});
     await migApi("/__helper/secret?key=migrate",{method:"PUT",body:JSON.stringify({value:$("migRec").checked?JSON.stringify({codigo:q.codigo,clave:q.clave,socio:q.socio}):""})});
     if(!xmls.length){msg.textContent="No hay CFE emitidos en ese rango.";return;}
     MIG.xmls=xmls;MIG.rango=q.desde+" a "+q.hasta;
