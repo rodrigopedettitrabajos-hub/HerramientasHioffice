@@ -3,7 +3,6 @@ package main
 
 import (
 	"bytes"
-	"embed"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
@@ -18,15 +17,7 @@ import (
 	"unicode/utf8"
 )
 
-//go:embed secretos
-var secretos embed.FS
-
 var migrateURL = "https://appuy.migrate.info/InvoiCy/aws_descargaemitidos.aspx" // variable para las pruebas
-
-func claveSocio() string {
-	b, _ := secretos.ReadFile("secretos/clave_socio.txt")
-	return strings.TrimSpace(string(b))
-}
 
 func xmlEsc(s string) string {
 	var b bytes.Buffer
@@ -59,35 +50,32 @@ func handleMigrate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var q struct {
-		Codigo, Clave, Desde, Hasta string
-		Pagina                      int
+		Codigo, Clave, Socio, Desde, Hasta string
+		Pagina                             int
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&q); err != nil {
 		writeJSON(w, 200, map[string]string{"error": "petición inválida"})
 		return
 	}
-	q.Codigo, q.Clave = strings.TrimSpace(q.Codigo), strings.TrimSpace(q.Clave)
+	q.Codigo, q.Clave, q.Socio = strings.TrimSpace(q.Codigo), strings.TrimSpace(q.Clave), strings.TrimSpace(q.Socio)
 	_, e1 := time.Parse("2006-01-02", q.Desde)
 	_, e2 := time.Parse("2006-01-02", q.Hasta)
 	switch {
 	case !reCodigo.MatchString(q.Codigo):
 		writeJSON(w, 200, map[string]string{"error": "El código de empresa tiene que ser un número."})
 		return
-	case q.Clave == "" || len(q.Clave) > 64:
-		writeJSON(w, 200, map[string]string{"error": "Falta la clave de comunicación."})
+	case q.Clave == "" || len(q.Clave) > 64 || q.Socio == "" || len(q.Socio) > 64:
+		writeJSON(w, 200, map[string]string{"error": "Faltan la clave de comunicación o la clave del socio."})
 		return
 	case e1 != nil || e2 != nil || q.Hasta < q.Desde:
 		writeJSON(w, 200, map[string]string{"error": "Rango de fechas inválido."})
-		return
-	case claveSocio() == "":
-		writeJSON(w, 200, map[string]string{"error": "Este programa se compiló sin la clave del socio de Migrate (secretos/clave_socio.txt)."})
 		return
 	}
 	if q.Pagina < 1 {
 		q.Pagina = 1
 	}
 	// TipoRetornoXML 1 = XML de envío del CFE; CFERepImpresa 4 = sin PDF (pesa mucho y no se usa).
-	inner := "<DescargaEmitidos><Encabezado><EmpCodigo>" + q.Codigo + "</EmpCodigo><EmpPK>" + xmlEsc(claveSocio()) +
+	inner := "<DescargaEmitidos><Encabezado><EmpCodigo>" + q.Codigo + "</EmpCodigo><EmpPK>" + xmlEsc(q.Socio) +
 		"</EmpPK><EmpCK>" + xmlEsc(q.Clave) + "</EmpCK><Pagina>" + strconv.Itoa(q.Pagina) + "</Pagina></Encabezado><Filtros>" +
 		"<FechaHoraInclusionIni>" + q.Desde + "T00:00:00</FechaHoraInclusionIni><FechaHoraInclusionFin>" + q.Hasta +
 		"T23:59:59</FechaHoraInclusionFin><TipoRetornoXML>1</TipoRetornoXML><CFERepImpresa>4</CFERepImpresa></Filtros></DescargaEmitidos>"

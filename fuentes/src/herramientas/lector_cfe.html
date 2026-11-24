@@ -144,6 +144,7 @@ input[type=file]{display:none}
     <div class="body" id="migForm">
       <label class="lbl" for="migCod" style="display:block">Código de empresa</label><input type="text" id="migCod" inputmode="numeric" autocomplete="off">
       <label class="lbl" for="migCk" style="display:block">Clave de comunicación</label><input type="password" id="migCk" autocomplete="off">
+      <label class="lbl" for="migSocio" style="display:block">Clave del socio</label><input type="password" id="migSocio" autocomplete="off">
       <label><input type="checkbox" id="migRec" checked> Recordar en este equipo</label>
       <div class="row"><label class="lbl" for="migDesde">Desde</label><input type="date" id="migDesde"><label class="lbl" for="migHasta">Hasta</label><input type="date" id="migHasta"></div>
       <p class="note">Filtra por la fecha en que el CFE entró a Migrate (normalmente el mismo día de emisión).</p>
@@ -337,15 +338,15 @@ $("btnMig").onclick=async()=>{
   MIG.xmls=null;$("migForm").style.display="";$("migSuc").style.display="none";$("migOk").textContent="Traer";$("migMsg").textContent="";
   if(!$("migDesde").value){const h=new Date(),d=new Date(h.getFullYear(),h.getMonth()-1,1),f=x=>x.toLocaleDateString("sv");$("migDesde").value=f(d);$("migHasta").value=f(new Date(h.getFullYear(),h.getMonth(),0));}
   $("mig").classList.add("open");
-  try{const j=await migApi("/__helper/secret?key=migrate");if(j.value){const c=JSON.parse(j.value);$("migCod").value=c.codigo||"";$("migCk").value=c.clave||"";}}catch(e){}
+  try{const j=await migApi("/__helper/secret?key=migrate");if(j.value){const c=JSON.parse(j.value);$("migCod").value=c.codigo||"";$("migCk").value=c.clave||"";$("migSocio").value=c.socio||"";}}catch(e){}
 };
 $("migCerrar").onclick=()=>$("mig").classList.remove("open");
 const sucDe=x=>{const m=t=>{const r=new RegExp("<(?:\\w+:)?"+t+">([^<]*)<").exec(x);return r?r[1].trim():"";};const c=m("CdgDGISucursal"),n=m("EmiSucursal");return c&&n?c+" - "+n:(c||n||"(sin sucursal)");};
 $("migOk").onclick=async()=>{
   if(MIG.xmls)return migCargar();
-  const q={codigo:$("migCod").value.trim(),clave:$("migCk").value.trim(),desde:$("migDesde").value,hasta:$("migHasta").value};
+  const q={codigo:$("migCod").value.trim(),clave:$("migCk").value.trim(),socio:$("migSocio").value.trim(),desde:$("migDesde").value,hasta:$("migHasta").value};
   const msg=$("migMsg");
-  if(!q.codigo||!q.clave||!q.desde||!q.hasta){msg.textContent="Complete código, clave y fechas.";return;}
+  if(!q.codigo||!q.clave||!q.socio||!q.desde||!q.hasta){msg.textContent="Complete código, claves y fechas.";return;}
   $("migOk").disabled=true;
   try{
     const xmls=[];let total=0;
@@ -358,7 +359,7 @@ $("migOk").onclick=async()=>{
       for(const c of j.cfe)if(c.xml)xmls.push({name:c.tipo+"-"+c.serie+"-"+c.numero+".xml",xml:c.xml});
       if(xmls.length>=total||p>=1000)break;
     }
-    await migApi("/__helper/secret?key=migrate",{method:"PUT",body:JSON.stringify({value:$("migRec").checked?JSON.stringify({codigo:q.codigo,clave:q.clave}):""})});
+    await migApi("/__helper/secret?key=migrate",{method:"PUT",body:JSON.stringify({value:$("migRec").checked?JSON.stringify({codigo:q.codigo,clave:q.clave,socio:q.socio}):""})});
     if(!xmls.length){msg.textContent="No hay CFE emitidos en ese rango.";return;}
     MIG.xmls=xmls;MIG.rango=q.desde+" a "+q.hasta;
     const suc=new Map();for(const x of xmls){x.suc=sucDe(x.xml);suc.set(x.suc,(suc.get(x.suc)||0)+1);}

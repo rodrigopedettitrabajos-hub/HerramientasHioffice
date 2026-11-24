@@ -55,7 +55,7 @@ func updateAvailable() bool {
 		return false
 	}
 	fi, err := os.Stat(exePath)
-	return err == nil && (fi.Size() != exeStamp.Size() || !fi.ModTime().Equal(exeStamp.ModTime()))
+	return newRelease() || err == nil && (fi.Size() != exeStamp.Size() || !fi.ModTime().Equal(exeStamp.ModTime()))
 }
 
 func handleRestart(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +65,10 @@ func handleRestart(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, err := os.Stat(exePath); err != nil {
 		writeJSON(w, 200, map[string]string{"error": "No encuentro el programa en " + exePath})
+		return
+	}
+	if err := applyRelease(); err != nil {
+		writeJSON(w, 200, map[string]string{"error": "No se pudo bajar la versión nueva: " + err.Error()})
 		return
 	}
 	writeJSON(w, 200, map[string]bool{"ok": true})
@@ -152,7 +156,7 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 	// Sin cabeceras CORS: otras webs no pueden leer el token.
 	writeJSON(w, 200, map[string]any{"ok": true, "app": appID, "token": token, "version": 2, "exe": true,
-		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "db": db != nil})
+		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "appVersion": version, "db": db != nil})
 }
 
 type relayReq struct {
@@ -468,6 +472,7 @@ func main() {
 		log.SetOutput(lf) // sólo al archivo: sin consola (windowsgui) escribir en stderr falla y cortaba el registro
 	}
 	go cleanOld()
+	go watchReleases()
 	if err := openDB(); err != nil {
 		log.Printf("No se pudo abrir la base de datos: %v", err)
 	}

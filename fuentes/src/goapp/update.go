@@ -1,0 +1,103 @@
+// Actualización desde las versiones publicadas en GitHub (las arma .github/workflows/publicar.yml).
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io"
+	"log"
+	"os"
+	"strings"
+	"time"
+)
+
+var version = "dev" // el workflow pone la etiqueta de la versión con -ldflags "-X main.version=..."
+
+var releaseAPI = "https://api.github.com/repos/rodrigopedettitrabajos-hub/HerramientasHioffice/releases/latest"
+
+var nueva struct{ tag, url string } // versión publicada distinta de la que corre (protegida por mu)
+
+// Revisa al abrir y cada 6 horas. Las compilaciones locales ("dev") no se actualizan solas.
+func watchReleases() {
+	if version == "dev" {
+		return
+	}
+	for {
+		if tag, url, err := latestRelease(); err != nil {
+			log.Printf("No se pudo consultar la última versión: %v", err)
+		} else if tag != version && url != "" {
+			mu.Lock()
+			nueva.tag, nueva.url = tag, url
+			mu.Unlock()
+		}
+		time.Sleep(6 * time.Hour)
+	}
+}
+
+func latestRelease() (tag, url string, err error) {
+	resp, err := client.Get(releaseAPI)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return "", "", errors.New(resp.Status)
+	}
+	var r struct {
+		Tag    string `json:"tag_name"`
+		Assets []struct {
+			Name string `json:"name"`
+			URL  string `json:"browser_download_url"`
+		} `json:"assets"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&r); err != nil {
+		return "", "", err
+	}
+	for _, a := range r.Assets {
+		if a.Name == "Herramientas_HiOffice.exe" {
+			url = a.URL
+		}
+	}
+	return r.Tag, url, nil
+}
+
+func newRelease() bool { mu.Lock(); defer mu.Unlock(); return nueva.url != "" }
+
+// Baja la versión publicada y la deja en lugar del .exe actual (que pasa a .old.exe, como al instalar a mano).
+func applyRelease() error {
+	mu.Lock()
+	tag, url := nueva.tag, nueva.url
+	mu.Unlock()
+	if url == "" || exePath == "" {
+		return nil
+	}
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 200<<20))
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 || !bytes.HasPrefix(b, []byte("MZ")) {
+		return errors.New("la descarga no es un programa válido (" + resp.Status + ")")
+	}
+	nuevo := exePath + ".new"
+	if err := os.WriteFile(nuevo, b, 0o755); err != nil {
+		return err
+	}
+	old := strings.TrimSuffix(exePath, ".exe") + ".old.exe"
+	os.Remove(old)
+	if err := os.Rename(exePath, old); err != nil {
+		os.Remove(nuevo)
+		return err
+	}
+	if err := os.Rename(nuevo, exePath); err != nil {
+		os.Rename(old, exePath)
+		return err
+	}
+	log.Printf("Actualizado de %s a %s", version, tag)
+	return nil
+}
