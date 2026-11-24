@@ -37,6 +37,7 @@ button{background:var(--accent);color:var(--accent-text);border:0;border-radius:
 .blocks label{display:flex;gap:8px;color:var(--text);font-size:14px;padding:4px 0}
 summary{cursor:pointer;color:var(--muted);font-size:14px}
 .hidden{display:none!important}
+@media(min-width:1100px){.tab.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.tab.cols>section{margin:0;min-width:0}.tab.cols>.wide{grid-column:1/-1}}
 .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .topbar .acts{display:flex;gap:8px;align-items:center;margin-top:2px}
 .modal-bg{position:fixed;inset:0;background:rgba(10,14,20,.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
@@ -144,7 +145,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <nav class="tabs hidden" id="tabsNav"><button data-tab="home" class="home-btn">⌂ Inicio</button><button data-tab="transform">Transformar</button><button data-tab="validate">Validar JSON</button><button data-tab="csv">Pasar a CSV</button><button data-tab="bridge">Probar en HiOffice (Bridge)</button><button data-tab="cfe">Lector de CFE</button><button data-tab="liq">Unificador de liquidación</button></nav>
 <div class="tab hidden" id="tab-cfe"><iframe class="toolframe" id="frame-cfe" title="Lector de CFE"></iframe></div>
 <div class="tab hidden" id="tab-liq"><iframe class="toolframe" id="frame-liq" title="Unificador de liquidación"></iframe></div>
-<div class="tab hidden" id="tab-transform">
+<div class="tab hidden cols" id="tab-transform">
 
 
 <section>
@@ -188,7 +189,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <div id="result"></div>
 </section>
 
-<section id="secPrev" class="hidden">
+<section id="secPrev" class="hidden wide">
 <div class="pv-head"><h2 style="margin:0"><span class="n">👁</span>Vista previa de la tabla</h2>
 <div class="pv-opts"><label class="check"><input type="checkbox" id="pvHidden"><span>Columnas ocultas</span></label>
 <label class="check"><input type="checkbox" id="pvIds"><span>Ver IDs</span></label></div></div>
@@ -200,7 +201,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <p style="font-size:12px;color:var(--muted);margin:10px 0 0">Las filas son marcadores: los datos los calcula HiOffice al ejecutar. Los nombres se configuran abajo o haciendo clic en un encabezado.</p>
 </section>
 
-<section id="secNames" class="hidden">
+<section id="secNames" class="hidden wide">
 <h2><span class="n">✎</span>Nombres de columnas</h2>
 <p style="font-size:13px;color:var(--muted);margin:0 0 10px">El JSON de HiOffice no trae el nombre de los atributos estándar. Escribe aquí cómo se llama cada uno: el nombre queda guardado por ID y se usa en todos los JSON que abras. Si el bloque tiene un subtítulo propio, en pantalla se ve el subtítulo.</p>
 <div class="cfg-wrap"><table class="cfg" id="cfgTable"></table></div>
@@ -223,7 +224,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </section>
 </div>
 
-<div class="tab hidden" id="tab-csv">
+<div class="tab hidden cols" id="tab-csv">
 <section>
 <h2><span class="n">1</span>Archivo de origen</h2>
 <p style="font-size:13px;color:var(--muted);margin:0 0 10px">Convierte el resultado de una exportación de HiOffice (el JSON con <code>data</code>, <code>columnNames</code>, <code>columnTypes</code>, aunque el archivo se llame .csv) en un CSV. También acepta un CSV para cambiarle columnas o separadores. Sirve de ejemplo de exportación o para armar el archivo de una importación (p. ej. de stock).</p>
@@ -246,14 +247,14 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <div class="btns"><button id="csvGo">Descargar CSV</button><button class="sec" id="csvToImport">Usar en “Probar una importación”</button></div>
 <div id="csvMsg"></div>
 </section>
-<section id="csvPrevBox" class="hidden">
+<section id="csvPrevBox" class="hidden wide">
 <h2><span class="n">👁</span>Vista previa del CSV</h2>
 <div id="csvPrev"></div>
 <pre class="code" id="csvRaw" style="margin-top:10px"></pre>
 </section>
 </div>
 
-<div class="tab hidden" id="tab-bridge">
+<div class="tab hidden cols" id="tab-bridge">
 <section>
 <h2><span class="n">1</span>Conexión</h2>
 <div id="brMode" style="margin-bottom:10px"></div>
