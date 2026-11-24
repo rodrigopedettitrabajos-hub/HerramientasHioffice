@@ -1033,7 +1033,22 @@ setupDrop('dropVal','fileVal',(txt,fname) => {
   let Jv;
   try { Jv = JSON.parse(txt); } catch(e){ $('valOut').innerHTML = '<div class="msg err">No es un JSON válido: ' + esc(e.message) + '</div>'; return; }
   renderChecks('valOut', validate(Jv), fname);
+  $('valOut').insertAdjacentHTML('beforeend', resumenTablas(Jv));
 });
+// Debajo de la validación: columnas y filtros de cada tabla del JSON.
+function resumenTablas(J){
+  try {
+    const d = J.dashboardsData || {};
+    return (d.blockTableList||[]).map(t => {
+      const M = previewModel(J, t.idBlock);
+      const filas = M.columns.map(c => { const r = resolve(c); return '<tr><td>' + c.pos + '</td><td>' + esc(r.name || (c.isMetric ? 'Métrica #' : 'Atributo #') + c.id) + '</td><td>' + (c.isMetric ? 'Métrica' : 'Atributo') + ' ' + c.id + '</td><td>' + (c.shown ? 'Sí' : 'Oculta') + '</td><td>' + (c.total ? 'Σ' : '') + '</td></tr>'; }).join('');
+      const fil = M.conditions.length ? '<ul style="margin:6px 0 0;font-size:13px">' + M.conditions.map(c => '<li>' + esc(attrName(c.attr) || c.name || 'Atributo #' + c.attr) + ' · operador ' + esc(c.op) + (c.value ? ' · valor “' + esc(c.value) + '”' : '') + (c.value2 ? ' / “' + esc(c.value2) + '”' : '') + (c.neg ? ' · negado' : '') + (c.ask ? ' · <b>se pregunta al ejecutar</b>' : '') + '</li>').join('') + '</ul>' : '<div style="font-size:13px;color:var(--muted);margin-top:4px">Sin filtros fijos.</div>';
+      return '<h3 style="margin:18px 0 6px;font-size:15px">Tabla' + (M.title ? ': ' + esc(M.title) : ' ' + t.idBlock) + '</h3>'
+        + '<div style="overflow-x:auto"><table class="log"><tbody><tr><td><b>Pos.</b></td><td><b>Columna</b></td><td><b>Tipo · ID</b></td><td><b>Se ve</b></td><td><b>Total</b></td></tr>' + filas + '</tbody></table></div>'
+        + '<div style="margin-top:8px;font-size:13px"><b>Filtros</b>' + (M.dates ? ' · fechas ' + esc(fmtDate(M.dates[0]) + ' - ' + fmtDate(M.dates[1])) : '') + (M.ignoreDates ? ' · ignora el rango de fechas' : '') + '</div>' + fil;
+    }).join('');
+  } catch(e){ return ''; }
+}
 
 // ================= Pasar a CSV =================
 // Formato en que HiOffice entrega una exportación por tabla:
