@@ -30,6 +30,8 @@ jobs:
         run: |
           TAG="1.$(printf %02d ${{ github.run_number }})"   # 1.03, 1.04…
           cd fuentes/src/goapp
+          # Ícono del .exe (cuadrado rojo con H): recurso de Windows armado en cada publicación, no se guarda en el repo
+          go run github.com/akavel/rsrc@v0.10.2 -ico icono.ico -arch amd64 -o rsrc_windows_amd64.syso
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o Herramientas_HiOffice.exe .
           # Novedades = mensaje del commit sin las líneas de firma
           git log -1 --format=%B | grep -vE '^(Co-[Aa]uthored-[Bb]y:|Claude-Session:|-{3,}\s*$)' > notas.txt
