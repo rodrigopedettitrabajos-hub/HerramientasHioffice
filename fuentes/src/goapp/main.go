@@ -165,7 +165,17 @@ type relayReq struct {
 	} `json:"file"`
 }
 
-var client = &http.Client{Timeout: 5 * time.Minute, Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12}}}
+var client = &http.Client{Timeout: 5 * time.Minute, Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12}},
+	// Go reenvía x-auth-token en las redirecciones: sólo se siguen si el destino también está permitido.
+	CheckRedirect: func(r *http.Request, via []*http.Request) error {
+		if !hostAllowed(r.URL.String()) {
+			return errors.New("el servidor redirigió a un destino no permitido: " + r.URL.Hostname())
+		}
+		if len(via) >= 10 {
+			return errors.New("demasiadas redirecciones")
+		}
+		return nil
+	}}
 
 func handleRelay(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -237,7 +247,15 @@ func handleRelay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxBody))
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, maxBody+1))
+	if err != nil {
+		writeJSON(w, 200, map[string]string{"error": "Se cortó la respuesta del servidor: " + err.Error()})
+		return
+	}
+	if len(raw) > maxBody {
+		writeJSON(w, 200, map[string]string{"error": fmt.Sprintf("La respuesta del servidor pasa de %d MB: es demasiado grande para mostrarla aquí.", maxBody>>20)})
+		return
+	}
 	log.Printf("%s %s%s -> %d", q.Method, req.URL.Hostname(), req.URL.Path, resp.StatusCode)
 	writeJSON(w, 200, map[string]any{"status": resp.StatusCode, "contentType": resp.Header.Get("Content-Type"), "body": strings.ToValidUTF8(string(raw), "�")})
 }
