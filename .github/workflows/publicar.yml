@@ -28,7 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="V1.$(printf %04d ${{ github.run_number }})"   # V1.0001, V1.0002…
+          TAG="1.$(printf %02d ${{ github.run_number }})"   # 1.03, 1.04…
           cd fuentes/src/goapp
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o Herramientas_HiOffice.exe .
           # Novedades = mensaje del commit sin las líneas de firma
