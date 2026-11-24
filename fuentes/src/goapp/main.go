@@ -79,18 +79,23 @@ func handleRestart(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Borra la copia vieja que queda al actualizar (Herramientas_HiOffice.old.exe); reintenta mientras la vieja termina de cerrarse.
+// Borra la copia vieja que queda al actualizar (Herramientas_HiOffice.old.exe).
 func cleanOld() {
 	if exePath == "" {
 		return
 	}
 	ext := filepath.Ext(exePath)
 	old := strings.TrimSuffix(exePath, ext) + ".old" + ext
-	for i := 0; i < 20; i++ {
+	// Rápido al principio; si sigue en uso (la versión vieja todavía abierta, el antivirus), reintenta cada minuto.
+	for i := 0; ; i++ {
 		if err := os.Remove(old); err == nil || os.IsNotExist(err) {
 			return
 		}
-		time.Sleep(500 * time.Millisecond)
+		if i < 20 {
+			time.Sleep(500 * time.Millisecond)
+		} else {
+			time.Sleep(time.Minute)
+		}
 	}
 }
 
