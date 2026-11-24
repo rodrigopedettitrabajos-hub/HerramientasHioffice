@@ -11,6 +11,7 @@ import (
 	neturl "net/url"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -149,6 +150,8 @@ func handleNovedades(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]string{"error": "GitHub respondió " + resp.Status})
 		return
 	}
+	// La más nueva primero (GitHub no las devuelve por fecha cuando hay etiquetas con otro formato, como v2026.11.24-1).
+	sort.SliceStable(rs, func(i, j int) bool { return rs[i].Fecha > rs[j].Fecha })
 	out := []map[string]string{}
 	for _, x := range rs {
 		out = append(out, map[string]string{"tag": x.Tag, "fecha": x.Fecha, "notas": strings.TrimSpace(reFirma.ReplaceAllString(x.Notas, ""))})
