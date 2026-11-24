@@ -14,7 +14,11 @@ func TestReleaseYActualizacion(t *testing.T) {
 	var srv *httptest.Server
 	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/latest" {
-			fmt.Fprintf(w, `{"tag_name":"v2","assets":[{"name":"otro.zip","browser_download_url":"x"},{"name":"Herramientas_HiOffice.exe","browser_download_url":"%s/exe"}]}`, srv.URL)
+			fmt.Fprintf(w, `{"tag_name":"v2","assets":[{"name":"otro.zip","browser_download_url":"x"},{"name":"Herramientas_HiOffice.exe","browser_download_url":"%s/redir"}]}`, srv.URL)
+			return
+		}
+		if r.URL.Path == "/redir" { // como GitHub: el enlace redirige a otro dominio
+			http.Redirect(w, r, srv.URL+"/exe", http.StatusFound)
 			return
 		}
 		w.Write([]byte("MZnuevo"))
@@ -22,7 +26,7 @@ func TestReleaseYActualizacion(t *testing.T) {
 	defer srv.Close()
 	releaseAPI = srv.URL + "/latest"
 	tag, url, err := latestRelease()
-	if err != nil || tag != "v2" || url != srv.URL+"/exe" {
+	if err != nil || tag != "v2" || url != srv.URL+"/redir" {
 		t.Fatal(tag, url, err)
 	}
 	dir := t.TempDir()
