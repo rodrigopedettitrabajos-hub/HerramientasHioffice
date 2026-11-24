@@ -38,7 +38,7 @@ button{background:var(--accent);color:var(--accent-text);border:0;border-radius:
 .blocks label{display:flex;gap:8px;color:var(--text);font-size:14px;padding:4px 0}
 summary{cursor:pointer;color:var(--muted);font-size:14px}
 .hidden{display:none!important}
-@media(min-width:1100px){.tab.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.tab.cols>section{margin:0;min-width:0}.tab.cols>.wide{grid-column:1/-1}}
+@media(min-width:1100px){.tab.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.tab.cols>section{margin:0;min-width:0}.tab.cols>.wide{grid-column:1/-1}.tab.cols>section:first-child:not(:has(~section:not(.hidden))){grid-column:1/-1}}
 .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#e31e24;color:#fff;margin:-20px -24px 18px;padding:10px 24px}
 .topbar h1{display:flex;align-items:center;gap:14px;margin:0;font-size:16px;font-weight:600}
 .topbar h1 img{height:28px;padding-right:14px;border-right:1px solid rgba(255,255,255,.45)}
