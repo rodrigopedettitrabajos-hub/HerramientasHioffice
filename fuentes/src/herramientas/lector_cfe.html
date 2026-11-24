@@ -340,17 +340,18 @@ $("btnMig").onclick=async()=>{
   $("mig").classList.add("open");
   try{const j=await migApi("/__helper/secret?key=migrate");if(j.value){const c=JSON.parse(j.value);$("migCod").value=c.codigo||"";$("migCk").value=c.clave||"";$("migSocio").value=c.socio||"";}}catch(e){}
 };
-$("migCerrar").onclick=()=>$("mig").classList.remove("open");
+// Mientras descarga, "Cerrar" pasa a "Detener": corta después de la página en curso y carga lo ya bajado.
+$("migCerrar").onclick=()=>{if(MIG.bajando){MIG.parar=true;$("migCerrar").textContent="Deteniendo…";return;}$("mig").classList.remove("open");};
 const sucDe=x=>{const m=t=>{const r=new RegExp("<(?:\\w+:)?"+t+">([^<]*)<").exec(x);return r?r[1].trim():"";};const c=m("CdgDGISucursal"),n=m("EmiSucursal");return c&&n?c+" - "+n:(c||n||"(sin sucursal)");};
 $("migOk").onclick=async()=>{
   if(MIG.xmls)return migCargar();
   const q={codigo:$("migCod").value.trim(),clave:$("migCk").value.trim(),socio:$("migSocio").value.trim(),desde:$("migDesde").value,hasta:$("migHasta").value};
   const msg=$("migMsg");
   if(!q.codigo||!q.clave||!q.socio||!q.desde||!q.hasta){msg.textContent="Complete el código de integración, las claves y las fechas.";return;}
-  $("migOk").disabled=true;
+  $("migOk").disabled=true;MIG.bajando=true;MIG.parar=false;$("migCerrar").textContent="Detener";
   try{
     const xmls=[];let total=0;
-    for(let p=1;;p++){
+    for(let p=1;!MIG.parar;p++){
       msg.textContent="Descargando página "+p+(total?" ("+xmls.length+" de "+total+" CFE)":"")+"…";
       const j=await migApi("/__helper/migrate",{method:"POST",body:JSON.stringify(Object.assign({pagina:p},q))});
       if(j.error)throw new Error(j.error);
@@ -367,7 +368,7 @@ $("migOk").onclick=async()=>{
     $("migSuc").innerHTML="<p>Se descargaron "+xmls.length+" CFE. Elija las sucursales:</p>"+[...suc].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,n])=>`<label><input type="checkbox" value="${esc(k)}" checked> ${esc(k)} <span class="note">(${n})</span></label>`).join("");
     $("migForm").style.display="none";$("migSuc").style.display="";$("migOk").textContent="Cargar";
   }catch(e){msg.textContent=e.message;}
-  finally{$("migOk").disabled=false;}
+  finally{$("migOk").disabled=false;MIG.bajando=false;$("migCerrar").textContent="Cerrar";}
 };
 function migCargar(){
   const sel=new Set([...$("migSuc").querySelectorAll("input:checked")].map(i=>i.value));
