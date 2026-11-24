@@ -3,7 +3,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -18,6 +20,13 @@ import (
 )
 
 var migrateURL = "https://appuy.migrate.info/InvoiCy/aws_descargaemitidos.aspx" // variable para las pruebas
+
+// Clave de comunicación (EmpCK) que pide Invoicy: MD5 en hexadecimal de la clave de acceso + el XML que se envía
+// (lo que va después del Encabezado), como en su ejemplo oficial en C#.
+func claveComunicacion(claveAcceso, xml string) string {
+	h := md5.Sum([]byte(claveAcceso + xml))
+	return hex.EncodeToString(h[:])
+}
 
 func xmlEsc(s string) string {
 	var b bytes.Buffer
@@ -62,10 +71,10 @@ func handleMigrate(w http.ResponseWriter, r *http.Request) {
 	_, e2 := time.Parse("2006-01-02", q.Hasta)
 	switch {
 	case !reCodigo.MatchString(q.Codigo):
-		writeJSON(w, 200, map[string]string{"error": "El código de empresa tiene que ser un número."})
+		writeJSON(w, 200, map[string]string{"error": "El código de integración tiene que ser un número."})
 		return
 	case q.Clave == "" || len(q.Clave) > 64 || q.Socio == "" || len(q.Socio) > 64:
-		writeJSON(w, 200, map[string]string{"error": "Faltan la clave de comunicación o la clave del socio."})
+		writeJSON(w, 200, map[string]string{"error": "Faltan la clave de acceso o la clave del partner."})
 		return
 	case e1 != nil || e2 != nil || q.Hasta < q.Desde:
 		writeJSON(w, 200, map[string]string{"error": "Rango de fechas inválido."})
@@ -75,10 +84,11 @@ func handleMigrate(w http.ResponseWriter, r *http.Request) {
 		q.Pagina = 1
 	}
 	// TipoRetornoXML 1 = XML de envío del CFE; CFERepImpresa 4 = sin PDF (pesa mucho y no se usa).
+	filtros := "<Filtros><FechaHoraInclusionIni>" + q.Desde + "T00:00:00</FechaHoraInclusionIni><FechaHoraInclusionFin>" + q.Hasta +
+		"T23:59:59</FechaHoraInclusionFin><TipoRetornoXML>1</TipoRetornoXML><CFERepImpresa>4</CFERepImpresa></Filtros>"
 	inner := "<DescargaEmitidos><Encabezado><EmpCodigo>" + q.Codigo + "</EmpCodigo><EmpPK>" + xmlEsc(q.Socio) +
-		"</EmpPK><EmpCK>" + xmlEsc(q.Clave) + "</EmpCK><Pagina>" + strconv.Itoa(q.Pagina) + "</Pagina></Encabezado><Filtros>" +
-		"<FechaHoraInclusionIni>" + q.Desde + "T00:00:00</FechaHoraInclusionIni><FechaHoraInclusionFin>" + q.Hasta +
-		"T23:59:59</FechaHoraInclusionFin><TipoRetornoXML>1</TipoRetornoXML><CFERepImpresa>4</CFERepImpresa></Filtros></DescargaEmitidos>"
+		"</EmpPK><EmpCK>" + claveComunicacion(q.Clave, filtros) + "</EmpCK><Pagina>" + strconv.Itoa(q.Pagina) + "</Pagina></Encabezado>" +
+		filtros + "</DescargaEmitidos>"
 	env := `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:gx="Gx"><soapenv:Header/><soapenv:Body>` +
 		`<gx:WS_DescargaEmitidos.Execute><gx:Xmldescarga>` + xmlEsc(inner) + `</gx:Xmldescarga></gx:WS_DescargaEmitidos.Execute></soapenv:Body></soapenv:Envelope>`
 	req, _ := http.NewRequest("POST", migrateURL, strings.NewReader(env))

@@ -142,9 +142,9 @@ input[type=file]{display:none}
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="migTit">
     <h3 id="migTit">Traer CFE emitidos desde Migrate</h3>
     <div class="body" id="migForm">
-      <label class="lbl" for="migCod" style="display:block">Código de empresa</label><input type="text" id="migCod" inputmode="numeric" autocomplete="off">
-      <label class="lbl" for="migCk" style="display:block">Clave de comunicación</label><input type="password" id="migCk" autocomplete="off">
-      <label class="lbl" for="migSocio" style="display:block">Clave del socio</label><input type="password" id="migSocio" autocomplete="off">
+      <label class="lbl" for="migCod" style="display:block">Código de integración</label><input type="text" id="migCod" inputmode="numeric" autocomplete="off">
+      <label class="lbl" for="migCk" style="display:block">Clave de acceso</label><input type="password" id="migCk" autocomplete="off">
+      <label class="lbl" for="migSocio" style="display:block">Clave del partner</label><input type="password" id="migSocio" autocomplete="off">
       <label><input type="checkbox" id="migRec" checked> Recordar en este equipo</label>
       <div class="row"><label class="lbl" for="migDesde">Desde</label><input type="date" id="migDesde"><label class="lbl" for="migHasta">Hasta</label><input type="date" id="migHasta"></div>
       <p class="note">Filtra por la fecha en que el CFE entró a Migrate (normalmente el mismo día de emisión).</p>
@@ -346,7 +346,7 @@ $("migOk").onclick=async()=>{
   if(MIG.xmls)return migCargar();
   const q={codigo:$("migCod").value.trim(),clave:$("migCk").value.trim(),socio:$("migSocio").value.trim(),desde:$("migDesde").value,hasta:$("migHasta").value};
   const msg=$("migMsg");
-  if(!q.codigo||!q.clave||!q.socio||!q.desde||!q.hasta){msg.textContent="Complete código, claves y fechas.";return;}
+  if(!q.codigo||!q.clave||!q.socio||!q.desde||!q.hasta){msg.textContent="Complete el código de integración, las claves y las fechas.";return;}
   $("migOk").disabled=true;
   try{
     const xmls=[];let total=0;

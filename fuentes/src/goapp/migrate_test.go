@@ -6,6 +6,13 @@ import (
 	"testing"
 )
 
+func TestClaveComunicacion(t *testing.T) {
+	// md5("abc") conocido
+	if got := claveComunicacion("a", "bc"); got != "900150983cd24fb0d6963f7d28e17f72" {
+		t.Fatal(got)
+	}
+}
+
 func TestParseMigrate(t *testing.T) {
 	cfe := base64.StdEncoding.EncodeToString([]byte("<CFE><Nombre>Ca\xf1a</Nombre></CFE>")) // ISO-8859-1
 	inner := `<?xml version="1.0" encoding="utf-8"?><DescargaEmitidosRetorno><Encabezado><NroLinRetorno>1</NroLinRetorno><NroLinTotalRetorno>3</NroLinTotalRetorno><Pagina>1</Pagina><MsgCod>100</MsgCod><MsgDsc>OK</MsgDsc></Encabezado><ListaCFE><CFE><TipoCFE>101</TipoCFE><CFESerie>A</CFESerie><CFENumero>7</CFENumero><CFEXML>` + cfe + `</CFEXML></CFE></ListaCFE></DescargaEmitidosRetorno>`
