@@ -1,0 +1,33 @@
+HERRAMIENTAS HIOFFICE
+=====================
+
+Cómo se usa
+- Doble clic en Herramientas_HiOffice.exe. Se abre la herramienta en el navegador.
+- La primera vez pide la configuración (email de CloudLicense, idioma y, si quieres,
+  recordar la contraseña y conectar automáticamente). Se puede cambiar luego con "⚙ Configuración".
+- Para salir: botón "Cerrar herramienta" (o cierra la pestaña: el programa se cierra solo a los 3 minutos).
+
+Primera vez en Windows
+Como el programa no está firmado, Windows puede mostrar "Windows protegió su PC".
+Pulsa "Más información" > "Ejecutar de todas formas". Sólo pasa la primera vez.
+
+Archivos
+- Herramientas_HiOffice.exe   El programa (no necesita instalar nada).
+- Herramientas_HiOffice.html  La misma herramienta sin programa: sirve para Transformar y Validar sin conexión.
+- datos\                      Se crea solo. Guarda:
+    configuracion.json         email, idioma y opciones
+    nombres_columnas.json      los nombres de columnas que pongas
+    nombres_aprendidos.json    nombres deducidos de los JSON
+    credencial.bin             la contraseña, cifrada por Windows para tu usuario (sólo si eliges recordarla)
+    registro.log               llamadas hechas (sin contraseñas ni tokens)
+
+Pestañas
+1. Transformar: dashboard/informe <-> exportación, vista previa de la tabla y nombres de columnas.
+2. Validar JSON: revisa un JSON antes de subirlo a HiOffice.
+3. Probar en HiOffice (Bridge): lanzar una exportación y ver el archivo generado; lanzar una
+   importación y seguir su estado. CUIDADO: una importación escribe datos reales.
+
+Seguridad
+El programa sólo escucha en este equipo (127.0.0.1:8765) y sólo se comunica con servidores de
+HiOffice (cloudlicense.icg.eu, *.icg.eu, *.hiopos.com) por https.
+La contraseña guardada no sirve en otro PC ni con otro usuario de Windows, aunque OneDrive sincronice la carpeta.

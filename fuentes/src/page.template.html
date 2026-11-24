@@ -1,0 +1,1726 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herramientas HiOffice</title>
+<style>
+:root{--err-bg:#fdecec;--err:#a1251b;--hdr:#bcdcf7;--bg:#f6f7f9;--card:#fff;--text:#1d2329;--muted:#5d6670;--line:#dde1e6;--accent:#2563eb;--accent-text:#fff;--warn-bg:#fff7e6;--warn:#8a5a00;--ok-bg:#eaf7ee;--ok:#1e6b3a;--input:#fff;--chip:#eef2fb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--card:#1c2026;--text:#e6e9ed;--muted:#9aa3ad;--line:#2e343c;--accent:#5b8def;--accent-text:#0b0f14;--warn-bg:#33290f;--warn:#f0c46a;--ok-bg:#12301e;--ok:#7fd69f;--input:#14171b;--chip:#232a36;--hdr:#1f3a57;--err-bg:#3a1714;--err:#f19a92}}
+:root[data-theme="dark"]{--bg:#14171b;--card:#1c2026;--text:#e6e9ed;--muted:#9aa3ad;--line:#2e343c;--accent:#5b8def;--accent-text:#0b0f14;--warn-bg:#33290f;--warn:#f0c46a;--ok-bg:#12301e;--ok:#7fd69f;--input:#14171b;--chip:#232a36;--hdr:#1f3a57;--err-bg:#3a1714;--err:#f19a92}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}
+p.lead{color:var(--muted);margin:0 0 22px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+h2{font-size:15px;margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h2 .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-text);font-size:12px}
+.chip{background:var(--chip);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
+.drop{border:2px dashed var(--line);border-radius:8px;padding:18px;text-align:center;color:var(--muted);cursor:pointer}
+.drop.over{border-color:var(--accent)}
+.drop b{color:var(--text)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--muted)}
+input[type=text],input[type=number]{width:100%;margin-top:3px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--input);color:var(--text);font:inherit}
+.check{display:flex;gap:8px;align-items:flex-start;color:var(--text);font-size:14px;margin-top:8px}
+.check input{margin-top:4px}
+.check small{display:block;color:var(--muted)}
+button{background:var(--accent);color:var(--accent-text);border:0;border-radius:7px;padding:10px 18px;font:600 15px system-ui,sans-serif;cursor:pointer}
+.info{font-size:14px}
+.info td{padding:2px 12px 2px 0;vertical-align:top}
+.info td:first-child{color:var(--muted);white-space:nowrap}
+.msg{border-radius:7px;padding:10px 12px;margin-top:12px;font-size:14px}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.ok{background:var(--ok-bg);color:var(--ok)}
+.msg ul{margin:4px 0 0;padding-left:18px}
+.blocks label{display:flex;gap:8px;color:var(--text);font-size:14px;padding:4px 0}
+summary{cursor:pointer;color:var(--muted);font-size:14px}
+.hidden{display:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.topbar .acts{display:flex;gap:8px;align-items:center;margin-top:2px}
+.modal-bg{position:fixed;inset:0;background:rgba(10,14,20,.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:12px;max-width:520px;width:100%;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal h2{font-size:18px;margin:0 0 6px}
+.modal .grid{grid-template-columns:1fr}
+.home h2.grp{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:22px 0 10px}
+.home h2.grp:first-child{margin-top:0}
+.homegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.hcard{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:16px;font:inherit;cursor:pointer;transition:border-color .15s,transform .15s}
+.hcard:hover,.hcard:focus-visible{border-color:var(--accent);transform:translateY(-1px)}
+.hcard .ic{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:9px;background:var(--chip);color:var(--accent);font-size:19px}
+.hcard b{display:block;font-size:15px;margin-bottom:2px}
+.hcard span.d{display:block;font-size:13px;color:var(--muted);font-weight:400;line-height:1.4}
+.tabs button.home-btn{color:var(--text)}
+.tabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{background:none;color:var(--muted);border-radius:7px 7px 0 0;padding:9px 14px;font-size:14px;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.msg:not(.ok):not(.warn):not(.err){background:var(--chip);color:var(--text)}
+ul.checks{list-style:none;padding:0;margin:10px 0 0;font-size:13.5px}
+li.chk{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)}
+li.chk .ic{width:18px;text-align:center;font-weight:700;flex:none}
+li.chk.ok .ic{color:var(--ok)} li.chk.warn .ic{color:var(--warn)} li.chk.error .ic{color:var(--err)}
+li.chk .ar{flex:none;min-width:92px;color:var(--muted);font-size:12px}
+.pill{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 9px;font-size:12px;color:var(--text)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.doc{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.doc-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.doc-h button{margin-left:auto}
+pre.code{max-height:340px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:14px;margin-top:8px}
+.row label{color:var(--text);font-size:14px;display:flex;gap:6px;align-items:center}
+input[type=password],input[type=date],select,textarea{width:100%;margin-top:3px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--input);color:var(--text);font:inherit}
+textarea{min-height:140px;font:12px ui-monospace,Menlo,Consolas,monospace}
+button:disabled{opacity:.45;cursor:not-allowed}
+table.log{width:100%;border-collapse:collapse;font-size:12px}
+table.log td{padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.log td.u{white-space:normal;word-break:break-all}
+table.log td.g{color:var(--ok)} table.log td.b{color:var(--err)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pv-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.pv-opts{display:flex;gap:14px;flex-wrap:wrap}
+.pv-opts .check{margin:0}
+.hio{border:1px solid var(--line);border-radius:8px;background:var(--card);padding:10px 0 6px}
+.hio-dates{text-align:center;font-size:17px;color:var(--text);margin:2px 0 8px;letter-spacing:.2px}
+.hio-dates .arr{color:var(--muted);padding:0 8px}
+.hio-title{text-align:center;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin:4px 0 10px}
+.pv-wrap{overflow-x:auto;max-width:100%}
+table.pv{border-collapse:collapse;font-size:12.5px;min-width:100%}
+table.pv th,table.pv td{border-bottom:1px solid var(--line);padding:7px 10px;white-space:nowrap}
+table.pv thead tr.h th{background:var(--hdr);font-weight:500;text-align:center;color:var(--text)}
+table.pv thead tr.f th{background:var(--card);padding:4px 3px;border-bottom:1px solid var(--line)}
+table.pv .fbox{display:flex;justify-content:flex-end;border:1px solid var(--line);border-radius:2px;padding:1px 6px;font-size:12px;color:var(--muted);min-width:70px;height:20px}
+table.pv th .meta{display:block;font-weight:400;font-size:10.5px;color:var(--muted)}
+table.pv th.unk .lbl{color:var(--muted);font-style:italic}
+table.pv th [contenteditable]{outline:none;border-bottom:1px dashed transparent}
+table.pv th [contenteditable]:hover,table.pv th [contenteditable]:focus{border-bottom-color:var(--accent)}
+table.pv td{text-align:left}
+table.pv td.num{text-align:right}
+table.pv td.ctr{text-align:center}
+table.pv .rn{color:var(--muted);text-align:left;width:1%}
+table.pv .cb{width:1%;text-align:center}
+table.pv .cbx{display:inline-block;width:12px;height:12px;border:1.5px solid var(--muted);border-radius:2px;vertical-align:middle}
+table.pv .hid{opacity:.45;background-image:repeating-linear-gradient(135deg,transparent 0 6px,var(--line) 6px 7px)}
+table.pv tr.tot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0}
+.sk{display:inline-block;height:8px;border-radius:5px;background:var(--line);vertical-align:middle}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0;font-size:12px}
+.tags span{background:var(--chip);border-radius:999px;padding:2px 9px;color:var(--text)}
+.fl{font-size:13px;margin-top:10px}
+.fl li{margin:2px 0}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin-left:4px}
+table.cfg{border-collapse:collapse;width:100%;font-size:13px}
+table.cfg th,table.cfg td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+table.cfg th{font-weight:600;color:var(--muted);font-size:12px}
+table.cfg input{width:100%;min-width:140px;padding:5px 7px;border:1px solid var(--line);border-radius:5px;background:var(--input);color:var(--text);font:inherit}
+table.cfg .src{font-size:11.5px;color:var(--muted)}
+table.cfg tr.off td{color:var(--muted)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:13px;padding:7px 12px}
+.cfg-wrap{overflow-x:auto}
+.toolframe { display:block; width:100%; height:calc(100vh - 170px); min-height:520px; border:1px solid var(--line, #e3e6eb); border-radius:10px; background:#fff; }
+</style>
+</head>
+<body>
+<main>
+<div class="topbar"><h1>Herramientas HiOffice</h1><div class="acts"><button class="sec hidden" id="btnConfig">⚙ Configuración</button><button class="sec hidden" id="btnRestart" title="Cierra el programa y lo vuelve a abrir con la versión que haya en la carpeta">↻ Reiniciar y actualizar</button><button class="sec hidden" id="btnQuit">Cerrar herramienta</button></div></div>
+<div id="updBanner" class="msg ok hidden" style="margin:0 0 12px"><b>Hay una versión nueva del programa.</b> Pulsa “↻ Reiniciar y actualizar” para usarla.</div>
+<p class="lead" id="leadTxt">¿Qué quieres hacer?</p>
+<div class="tab home" id="tab-home">
+<h2 class="grp">HiOffice</h2>
+<div class="homegrid">
+<button class="hcard" data-go="transform"><span class="ic">⇄</span><span><b>Transformar</b><span class="d">Convertir dashboards en exportaciones y al revés.</span></span></button>
+<button class="hcard" data-go="validate"><span class="ic">✓</span><span><b>Validar JSON</b><span class="d">Revisar un JSON antes de subirlo a HiOffice.</span></span></button>
+<button class="hcard" data-go="csv"><span class="ic">▤</span><span><b>Pasar a CSV</b><span class="d">Convertir una exportación de HiOffice en CSV, como ejemplo o para importar (por ejemplo, stock).</span></span></button>
+<button class="hcard" data-go="bridge"><span class="ic">⇅</span><span><b>Probar en HiOffice (Bridge)</b><span class="d">Lanzar exportaciones e importaciones reales y guardar las pruebas por cliente.</span></span></button>
+</div>
+<h2 class="grp">Otras herramientas</h2>
+<div class="homegrid">
+<button class="hcard" data-go="cfe"><span class="ic">🧾</span><span><b>Lector de CFE</b><span class="d">Leer una carpeta de XML de comprobantes fiscales y exportarla a CSV o Excel.</span></span></button>
+<button class="hcard" data-go="liq"><span class="ic">∑</span><span><b>Unificador de liquidación</b><span class="d">Sumar el “No retenido” de una liquidación nueva al archivo de HiOffice por número de empleado.</span></span></button>
+</div>
+</div>
+<nav class="tabs hidden" id="tabsNav"><button data-tab="home" class="home-btn">⌂ Inicio</button><button data-tab="transform">Transformar</button><button data-tab="validate">Validar JSON</button><button data-tab="csv">Pasar a CSV</button><button data-tab="bridge">Probar en HiOffice (Bridge)</button><button data-tab="cfe">Lector de CFE</button><button data-tab="liq">Unificador de liquidación</button></nav>
+<div class="tab hidden" id="tab-cfe"><iframe class="toolframe" id="frame-cfe" title="Lector de CFE"></iframe></div>
+<div class="tab hidden" id="tab-liq"><iframe class="toolframe" id="frame-liq" title="Unificador de liquidación"></iframe></div>
+<div class="tab hidden" id="tab-transform">
+
+
+<section>
+<h2><span class="n">1</span>JSON de origen</h2>
+<div class="drop" id="dropSrc"><b>Arrastra aquí el JSON (dashboard o exportación)</b> o haz clic para elegirlo<input type="file" id="fileSrc" accept=".json,application/json" hidden></div>
+<div id="srcInfo" class="hidden"></div>
+<details id="tplBox" class="hidden" style="margin-top:12px"><summary id="tplSummary"></summary>
+<p id="tplHelp" style="font-size:13px;color:var(--muted);margin:8px 0"></p>
+<div class="drop" id="dropTpl"><b>Arrastra el JSON de plantilla</b> o haz clic<input type="file" id="fileTpl" accept=".json,application/json" hidden></div>
+<div id="tplInfo" style="font-size:14px"></div>
+</details>
+</section>
+
+<section id="secOpts" class="hidden">
+<h2><span class="n">2</span>Opciones <span class="chip" id="dirChip"></span></h2>
+<div id="blocks" class="blocks"></div>
+<div class="grid" style="margin-top:10px">
+<label><span id="lblName">Nombre</span><input type="text" id="oName"></label>
+<label data-mode="toReport">Título de la tabla<input type="text" id="oTitle"></label>
+<label data-mode="toExport">Nombre de la acción<input type="text" id="oAction"></label>
+<label data-mode="toExport">Nombre del perfil<input type="text" id="oProfile"></label>
+<label data-mode="toExport">Nombre del archivo<input type="text" id="oFile"></label>
+<label data-mode="toExport">Separador de campos<input type="text" id="oFieldSep" maxlength="3"></label>
+<label data-mode="toExport">Separador decimal<input type="text" id="oDecSep" maxlength="1"></label>
+</div>
+<details style="margin-top:14px"><summary>IDs (para no sobrescribir lo existente)</summary>
+<div class="grid" style="margin-top:10px">
+<label>ID dashboard<input type="number" id="idDash"></label>
+<label>ID bloque tabla<input type="number" id="idBlock"></label>
+<label>ID filtro tabla<input type="number" id="idFilter"></label>
+<label data-mode="toExport">ID acción<input type="number" id="idAction"></label>
+<label data-mode="toExport">ID perfil de exportación<input type="number" id="idProfile"></label>
+<label data-mode="toReport">ID bloque filtro global<input type="number" id="idGBlock"></label>
+<label data-mode="toReport">ID filtro global<input type="number" id="idGFilter"></label>
+</div></details>
+<label class="check" data-mode="toExport"><input type="checkbox" id="oGlobal"><span>Incluir las condiciones del filtro global<small>Las exportaciones no tienen bloque de filtro global. Si lo marcas, sus condiciones (p. ej. “pedir Proveedor”) pasan al filtro de la tabla; si no, se exporta sin ellas.</small></span></label>
+<label class="check" data-mode="toReport"><input type="checkbox" id="oAddGlobal"><span>Agregar barra de filtro global (fechas y filtros)<small>Pone arriba de la tabla el selector de fechas/filtros que tienen los informes. La tabla lo usa.</small></span></label>
+<label class="check"><input type="checkbox" id="oIgnoreDates"><span>Ignorar el rango de fechas<small>Viene del bloque original. Desmárcalo para que se respeten las fechas elegidas.</small></span></label>
+<label class="check" data-mode="toExport"><input type="checkbox" id="oTotals"><span>Incluir totales en el CSV</span></label>
+<div style="margin-top:16px"><button id="btnGo">Generar y descargar</button></div>
+<div id="result"></div>
+</section>
+
+<section id="secPrev" class="hidden">
+<div class="pv-head"><h2 style="margin:0"><span class="n">👁</span>Vista previa de la tabla</h2>
+<div class="pv-opts"><label class="check"><input type="checkbox" id="pvHidden"><span>Columnas ocultas</span></label>
+<label class="check"><input type="checkbox" id="pvIds"><span>Ver IDs</span></label></div></div>
+<div id="pvSrc" style="font-size:13px;color:var(--muted);margin-bottom:8px"></div>
+<div class="hio"><div class="hio-dates" id="pvDates"></div><div class="hio-title" id="pvTitle"></div>
+<div class="pv-wrap"><table class="pv" id="pvTable"></table></div></div>
+<div class="tags" id="pvTags"></div>
+<div class="fl" id="pvFilter"></div>
+<p style="font-size:12px;color:var(--muted);margin:10px 0 0">Las filas son marcadores: los datos los calcula HiOffice al ejecutar. Los nombres se configuran abajo o haciendo clic en un encabezado.</p>
+</section>
+
+<section id="secNames" class="hidden">
+<h2><span class="n">✎</span>Nombres de columnas</h2>
+<p style="font-size:13px;color:var(--muted);margin:0 0 10px">El JSON de HiOffice no trae el nombre de los atributos estándar. Escribe aquí cómo se llama cada uno: el nombre queda guardado por ID y se usa en todos los JSON que abras. Si el bloque tiene un subtítulo propio, en pantalla se ve el subtítulo.</p>
+<div class="cfg-wrap"><table class="cfg" id="cfgTable"></table></div>
+<div class="btns">
+<button class="sec" id="btnExportNames">Exportar nombres (.json)</button>
+<button class="sec" id="btnImportNames">Importar nombres</button><input type="file" id="fileNames" accept=".json,application/json" hidden>
+<button class="sec" id="btnBakeNames">Descargar el programa con los nombres incluidos</button>
+</div>
+<div id="namesMsg"></div>
+<p style="font-size:12px;color:var(--muted);margin:10px 0 0">Los nombres se guardan en este navegador. Para no perderlos, o para pasarlos a otra persona u otro equipo, usa “Descargar el programa con los nombres incluidos”: te baja una copia del conversor que ya los trae dentro.</p>
+</section>
+</div>
+
+<div class="tab hidden" id="tab-validate">
+<section>
+<h2><span class="n">✓</span>Validar un JSON de dashboard o exportación</h2>
+<p style="font-size:13px;color:var(--muted);margin:0 0 10px">Revisa sin conexión que el JSON esté bien armado antes de subirlo a HiOffice: referencias entre bloques, columnas, fórmulas y filtros, y que la acción de exportación esté enlazada a un perfil CSV/PDF válido. No garantiza que HiOffice lo acepte (para eso está la pestaña Bridge), pero detecta los errores que harían fallar la carga.</p>
+<div class="drop" id="dropVal"><b>Arrastra aquí el JSON a validar</b> o haz clic<input type="file" id="fileVal" accept=".json,application/json" hidden></div>
+<div id="valOut"></div>
+</section>
+</div>
+
+<div class="tab hidden" id="tab-csv">
+<section>
+<h2><span class="n">1</span>Archivo de origen</h2>
+<p style="font-size:13px;color:var(--muted);margin:0 0 10px">Convierte el resultado de una exportación de HiOffice (el JSON con <code>data</code>, <code>columnNames</code>, <code>columnTypes</code>, aunque el archivo se llame .csv) en un CSV. También acepta un CSV para cambiarle columnas o separadores. Sirve de ejemplo de exportación o para armar el archivo de una importación (p. ej. de stock).</p>
+<div class="drop" id="dropCsv"><b>Arrastra aquí el archivo exportado</b> o haz clic para elegirlo<input type="file" id="fileCsv" accept=".json,.csv,.txt,application/json,text/csv" hidden></div>
+<div id="csvInfo"></div>
+</section>
+<section id="csvOpts" class="hidden">
+<h2><span class="n">2</span>Columnas y formato</h2>
+<div class="row" style="margin-top:0"><label><input type="radio" name="csvUse" value="export" checked> Ejemplo de exportación (todas las columnas)</label><label><input type="radio" name="csvUse" value="import"> Para importación (eliges las columnas)</label></div>
+<div id="csvUseHelp" class="msg hidden">Marca sólo las columnas que pide la importación y ponles el nombre que espera HiOffice (ver la estructura del archivo de esa importación en el anexo de la UF8). La configuración se recuerda para la próxima vez que abras un archivo con las mismas columnas.</div>
+<div id="csvTablePick" class="hidden" style="margin-top:10px"><label>Tabla<select id="csvTable"></select></label></div>
+<div class="cfg-wrap" style="margin-top:10px"><table class="cfg" id="csvCols"></table></div>
+<div class="grid" style="margin-top:12px">
+<label>Separador de campos<select id="csvSep"><option value=";">; (punto y coma)</option><option value=",">, (coma)</option><option value="&#9;">Tabulador</option><option value="|">| (barra)</option></select></label>
+<label>Separador decimal (columnas numéricas)<select id="csvDec"><option value=",">, (coma)</option><option value=".">. (punto)</option></select></label>
+<label>Nombre del archivo<input type="text" id="csvName"></label>
+</div>
+<label class="check"><input type="checkbox" id="csvHeader" checked><span>Incluir la fila de encabezados</span></label>
+<label class="check"><input type="checkbox" id="csvBom" checked><span>Compatible con Excel (UTF-8 con BOM)<small>Hace que Excel muestre bien los acentos. Desmárcalo si el sistema que lo lee no lo admite.</small></span></label>
+<div class="btns"><button id="csvGo">Descargar CSV</button><button class="sec" id="csvToImport">Usar en “Probar una importación”</button></div>
+<div id="csvMsg"></div>
+</section>
+<section id="csvPrevBox" class="hidden">
+<h2><span class="n">👁</span>Vista previa del CSV</h2>
+<div id="csvPrev"></div>
+<pre class="code" id="csvRaw" style="margin-top:10px"></pre>
+</section>
+</div>
+
+<div class="tab hidden" id="tab-bridge">
+<section>
+<h2><span class="n">1</span>Conexión</h2>
+<div id="brMode" style="margin-bottom:10px"></div>
+<div class="grid">
+<label>Email de CloudLicense<input type="text" id="brEmail" autocomplete="username"></label>
+<label>Contraseña<input type="password" id="brPass" autocomplete="current-password"></label>
+<label>Idioma<select id="brLang"><option>ES</option><option>EN</option><option>CA</option><option>PT</option><option>DE</option><option>EL</option></select></label>
+</div>
+<details style="margin-top:10px"><summary>Avanzado</summary><div class="grid" style="margin-top:8px"><label>Servidor de login<input type="text" id="brLoginHost" value="https://cloudlicense.icg.eu"></label></div></details>
+<div class="btns"><button id="brLogin">Conectar</button><button class="sec" id="brLogout" disabled>Cerrar sesión</button></div>
+<div id="brSession"></div>
+<div id="brClient" class="hidden" style="margin-top:10px"><label>Nombre del cliente (para reconocerlo en las pruebas guardadas)<input type="text" id="brClientName" placeholder="p. ej. Supermercado Centro"></label><div class="src" id="brClientInfo" style="font-size:12px;color:var(--muted);margin-top:4px"></div></div>
+<p style="font-size:12px;color:var(--muted);margin:10px 0 0">La contraseña sólo se usa para pedir el token y no se guarda. El token vive en esta pestaña y se cierra la sesión al pulsar “Cerrar sesión”.</p>
+</section>
+
+<section>
+<h2><span class="n">2</span>Probar una exportación</h2>
+<div id="exSaved"></div>
+<div class="row"><label><input type="radio" name="exKind" value="table" checked> Por tabla (ID numérico)</label><label><input type="radio" name="exKind" value="dashboard"> Por dashboard (GUID)</label></div>
+<div class="grid" style="margin-top:8px">
+<label>ID de la exportación<input type="text" id="exId" placeholder="p. ej. 20"></label>
+<label>Desde<input type="date" id="exFrom"></label>
+<label>Hasta<input type="date" id="exTo"></label>
+</div>
+<div style="margin-top:12px;font-size:13px;color:var(--muted)">Filtros del filtro global</div>
+<div id="exFilters" style="margin-top:6px"></div><datalist id="opsList"></datalist>
+<div class="btns"><button class="sec" id="exAddFilter">+ Añadir filtro</button><button class="sec" id="exLoadFilters" disabled>Cargar filtros del dashboard</button></div>
+<div class="btns"><button id="exRun">Ejecutar exportación</button></div>
+<div id="exSaveBox"></div>
+<div id="exOut"></div>
+</section>
+
+<section>
+<h2><span class="n">3</span>Probar una importación</h2>
+<div id="imSaved"></div>
+<div class="msg warn" style="margin-top:10px">Ojo: una importación <b>escribe datos reales</b> en la base de HiOffice. Pruébala primero en un cliente de pruebas.</div>
+<div class="grid" style="margin-top:10px">
+<label>ID de la importación<input type="text" id="imId" placeholder="identificador de la importación"></label>
+<label>Dejar de consultar tras (min)<input type="number" id="imMaxMin" value="10" min="1"></label>
+</div>
+<div class="row"><label><input type="radio" name="imMode" value="none" checked> Sin archivo (FTP / configurado)</label><label><input type="radio" name="imMode" value="file"> Con archivo</label><label><input type="radio" name="imMode" value="body"> Con contenido (JSON/XML)</label></div>
+<div id="imFileBox" class="hidden" style="margin-top:10px"><div class="drop" id="dropIm"><b>Arrastra el archivo a importar</b> o haz clic<input type="file" id="fileIm" hidden></div><div id="imFileName" style="font-size:13px;margin-top:6px"></div><div id="imPrev"></div></div>
+<div id="imBodyBox" class="hidden" style="margin-top:10px"><label>Tipo<select id="imCt"><option>application/json</option><option>application/xml</option></select></label><label style="margin-top:8px">Contenido<textarea id="imBody" spellcheck="false"></textarea></label></div>
+<label class="check"><input type="checkbox" id="imConfirm"><span>Entiendo que esto importa datos reales en HiOffice</span></label>
+<div class="btns"><button id="imRun">Ejecutar importación</button><button class="sec" id="imStop" disabled>Dejar de consultar</button></div>
+<div id="imSaveBox"></div>
+<div id="imOut"></div>
+</section>
+
+<section>
+<details><summary>Registro de llamadas</summary>
+<p style="font-size:12px;color:var(--muted)">Se muestran sin contraseñas ni tokens.</p>
+<div style="overflow-x:auto"><table class="log"><tbody id="brLog"></tbody></table></div></details>
+<details style="margin-top:10px" id="helpPy"><summary>Cómo usar el ayudante local</summary>
+<div style="font-size:13px;margin-top:8px">
+<p>Si al conectar aparece que el navegador bloqueó la llamada, el servidor de HiOffice no acepta llamadas directas desde una página. El ayudante hace de intermediario en tu propio equipo:</p>
+<ol><li>Abre <b>Herramientas_HiOffice.exe</b> (en la misma carpeta que esta página).</li><li>Se abrirá esta herramienta en <code>http://127.0.0.1:8765</code> y arriba verás “Conectado mediante el ayudante local”.</li></ol>
+<p>El programa sólo escucha en tu equipo y sólo reenvía llamadas a servidores de HiOffice (icg.eu / hiopos.com).</p></div></details>
+</section>
+</div>
+<div class="modal-bg hidden" id="cfgModal"><div class="modal">
+<h2>Configuración</h2>
+<p style="font-size:13px;color:var(--muted);margin:0 0 14px" id="cfIntro">Datos de tu cuenta de CloudLicense para conectarte al Bridge de HiOffice. Se guardan en la carpeta <b>datos</b>, junto al programa.</p>
+<div class="grid">
+<label>Email de CloudLicense<input type="text" id="cfEmail" autocomplete="username"></label>
+<label>Contraseña<input type="password" id="cfPass" autocomplete="current-password" placeholder="(sin cambios)"></label>
+<label>Idioma<select id="cfLang"><option>ES</option><option>EN</option><option>CA</option><option>PT</option><option>DE</option><option>EL</option></select></label>
+</div>
+<label class="check" id="cfRememberBox"><input type="checkbox" id="cfRemember"><span>Recordar la contraseña en este equipo<small>Se guarda cifrada por Windows: sólo tu usuario de este PC puede leerla. En otro equipo (aunque OneDrive sincronice la carpeta) habrá que escribirla de nuevo.</small></span></label>
+<label class="check"><input type="checkbox" id="cfAuto"><span>Conectar automáticamente al abrir</span></label>
+<details style="margin-top:10px"><summary>Avanzado</summary><div class="grid" style="margin-top:8px"><label>Servidor de login<input type="text" id="cfHost" value="https://cloudlicense.icg.eu"></label></div></details>
+<div id="cfMsg"></div>
+<div class="btns" style="margin-top:16px"><button id="cfSave">Guardar</button><button class="sec" id="cfCancel">Ahora no</button><button class="sec" id="cfForget" style="margin-left:auto">Olvidar contraseña</button></div>
+</div></div>
+</main>
+
+<script id="tplExport" type="application/json">__TPL_EXPORT__</script>
+<script id="tplDash" type="application/json">__TPL_DASH__</script>
+<script id="dict" type="application/json">__DICT__</script>
+<script id="tool-cfe" type="application/json">__TOOL_CFE__</script>
+<script id="tool-liq" type="application/json">__TOOL_LIQ__</script>
+<script id="core">
+// ---- Lógica de conversión (sin DOM) ----
+const clone = o => JSON.parse(JSON.stringify(o));
+const uuid = () => (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID()
+  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); });
+const PER_BLOCK = ['blockColumnList','blockColumnTitleList','blockColumnStyleList','blockColumnFormulaList','blockDataSourceList',
+  'blockNameList','blockStyleConfigurationList','blockColumnGroupList','blockColumnGroupNameList','blockColorColumnList','blockColumnSerieList','blockColumnDesignList'];
+const EMPTY_METRICS = {metricList:[],metricNameList:[],metricNameBusinessTypeList:[],metricDataSourceList:[],metricSourceList:[]};
+
+function isExport(J){
+  const d = J && J.dashboardsData;
+  return !!(d && d.dashboardList && d.dashboardList[0] && (d.dashboardList[0].type === 6 ||
+    (Array.isArray(J.exportationProfiles) && J.exportationProfiles.length && (d.blockActionList||[]).length)));
+}
+
+function templateFromExport(E){
+  const e = E.dashboardsData;
+  if (!isExport(E) || !e.blockActionList.length || !(E.exportationProfiles||[]).length)
+    throw new Error('El archivo de plantilla no parece una exportación (falta la acción o el perfil de exportación).');
+  return { topKeys: Object.keys(E).filter(k => k!=='masterData' && k!=='dashboardsData'),
+    dashKeys: Object.keys(e), dashboard: e.dashboardList[0], table: e.blockTableList[0],
+    action: e.blockActionList[0], params: e.blockActionParamValueList, profile: E.exportationProfiles[0],
+    dashBlock: e.dashboardBlockList[0] };
+}
+
+function templateFromDashboard(D){
+  const d = D && D.dashboardsData;
+  if (!d || !d.dashboardList || !d.dashboardList.length || isExport(D)) throw new Error('El archivo de plantilla no parece un dashboard/informe.');
+  const t = (d.blockTableList||[])[0];
+  if (!t) throw new Error('La plantilla no tiene bloque de tabla.');
+  const g = (d.blockList||[]).find(b => b.type === 4);
+  const db = id => (d.dashboardBlockList||[]).find(x => x.idBlock === id);
+  const T = { topKeys: Object.keys(D).filter(k => k!=='masterData' && k!=='dashboardsData'), dashKeys: Object.keys(d),
+    dashboard: d.dashboardList[0], table: t, tableDashBlock: db(t.idBlock) };
+  const def = JSON.parse(document.getElementById('tplDash').textContent);
+  if (g){
+    const gf = (d.blockFilterList||[]).find(x => x.idBlock === g.idBlock);
+    T.globalBlock = g; T.globalDashBlock = db(g.idBlock);
+    T.globalFilterCfg = (d.blockGlobalFilterList||[]).find(x => x.idBlock === g.idBlock) || def.globalFilterCfg;
+    T.globalFilter = (gf && (d.filterList||[]).find(f => f.idFilter === gf.idFilter)) || def.globalFilter;
+  } else Object.assign(T, { globalBlock: def.globalBlock, globalDashBlock: def.globalDashBlock, globalFilterCfg: def.globalFilterCfg, globalFilter: def.globalFilter });
+  return T;
+}
+
+function analyze(J){
+  const d = J && J.dashboardsData;
+  if (!d || !d.dashboardList || !d.dashboardList.length) throw new Error('No es un JSON de HiOffice válido (falta dashboardsData.dashboardList).');
+  const dash = d.dashboardList[0];
+  const nameOf = (list, key, id) => { const l = (list||[]).filter(x => x[key]===id && x.name); return (l.find(x=>x.idLanguage==='ES')||l[0]||{}).name || ''; };
+  const tableIds = new Set((d.blockTableList||[]).map(t => t.idBlock));
+  const blocks = (d.blockList||[]).map(b => ({ id: b.idBlock, type: b.type, isTable: tableIds.has(b.idBlock),
+    name: nameOf(d.blockNameList,'idBlock',b.idBlock),
+    columns: (d.blockColumnList||[]).filter(c => c.idBlock===b.idBlock).length,
+    shown: (d.blockColumnList||[]).filter(c => c.idBlock===b.idBlock && c.isShown).length }));
+  return { id: dash.idDashboard, type: dash.type, isExport: isExport(J), name: nameOf(d.dashboardNameList,'idDashboard',dash.idDashboard),
+    profile: (J.exportationProfiles||[])[0] ? J.exportationProfiles[0].name : '',
+    blocks, tables: blocks.filter(b => b.isTable), globals: blocks.filter(b => b.type===4) };
+}
+
+// Copia del bloque tabla (columnas, títulos, fórmulas, estilos, fuente de datos) y comprobación de fórmulas
+function copyTableBlock(d, src, newId, o2){
+  for (const k of PER_BLOCK) o2[k] = (d[k]||[]).filter(x => x.idBlock===src).map(x => Object.assign(clone(x), { idBlock: newId }));
+}
+function checkFormulas(o2, masterData, warnings){
+  const internals = new Set(o2.blockColumnList.map(c => c.idInternal));
+  for (const f of o2.blockColumnFormulaList){
+    const m = (masterData.metricList||[]).find(x => x.idMetric===f.idMetric);
+    if (!m) { warnings.push('La métrica ' + f.idMetric + ' no está en masterData.'); continue; }
+    for (const ref of String(m.formula||'').matchAll(/"type"\s*:\s*"ColumnFormula"\s*,\s*"value"\s*:\s*"(\d+)"/g))
+      if (!internals.has(+ref[1])) warnings.push('La métrica ' + f.idMetric + ' usa una columna (idInternal ' + ref[1] + ') que no está en el bloque.');
+  }
+}
+// Une los filtros de origen en un único filtro nuevo F
+function buildFilter(d, srcFilterIds, F, o2, warnings){
+  o2.filterList = o2.filterList || []; o2.filterNameList = o2.filterNameList || []; o2.filterBlockList = o2.filterBlockList || [];
+  o2.filterGroupList = o2.filterGroupList || []; o2.filterRowList = o2.filterRowList || []; o2.filterConditionList = o2.filterConditionList || [];
+  const baseF = srcFilterIds.map(id => (d.filterList||[]).find(f => f.idFilter===id)).find(Boolean);
+  if (!baseF) return false;
+  o2.filterList.push(Object.assign(clone(baseF), { idFilter: F }));
+  o2.filterNameList.push({ idFilter: F, idLanguage: 'ES', name: '' });
+  o2.filterBlockList.push({ idFilterBlock: F, idFilter: F, logicOperator: 1, negation: false });
+  o2.filterGroupList.push({ idFilterGroup: F, idFilterBlock: F, logicOperator: 1, negation: false });
+  const fbs = (d.filterBlockList||[]).filter(x => srcFilterIds.includes(x.idFilter));
+  const fbIds = new Set(fbs.map(x => x.idFilterBlock));
+  const groups = (d.filterGroupList||[]).filter(x => fbIds.has(x.idFilterBlock));
+  const fgIds = new Set(groups.map(x => x.idFilterGroup));
+  const order = gid => { const g = groups.find(x => x.idFilterGroup===gid); const fb = g && fbs.find(x => x.idFilterBlock===g.idFilterBlock); return fb ? srcFilterIds.indexOf(fb.idFilter) : 0; };
+  const rows = (d.filterRowList||[]).filter(r => fgIds.has(r.idFilterGroup)).sort((a,b) => order(a.idFilterGroup)-order(b.idFilterGroup) || a.position-b.position);
+  const rowIds = new Set(rows.map(r => r.idFilterRow));
+  rows.forEach((r,i) => o2.filterRowList.push(Object.assign(clone(r), { idFilterGroup: F, position: i+1, guid: uuid() })));
+  (d.filterConditionList||[]).filter(c => rowIds.has(c.idFilterRow)).forEach(c => o2.filterConditionList.push(clone(c)));
+  if (fgIds.size > 1) warnings.push('Había varios grupos de filtro: se unieron en uno solo. Revisa la lógica Y/O.');
+  return true;
+}
+function emptyDash(T, d){
+  const o2 = {};
+  for (const k of new Set([...T.dashKeys, ...Object.keys(d)])) o2[k] = [];
+  o2.metricsData = clone(d.metricsData || EMPTY_METRICS);
+  return o2;
+}
+
+// ---- Dashboard/informe -> Exportación ----
+function convert(D, T, o){
+  const d = D.dashboardsData, warnings = [], src = o.blockId;
+  const blkSrc = d.blockList.find(b => b.idBlock===src);
+  if (!blkSrc) throw new Error('No se encontró el bloque ' + src);
+  const out = { masterData: clone(D.masterData || {}) };
+  const o2 = out.dashboardsData = emptyDash(T, d);
+  const gid = uuid();
+  o2.dashboardList = [Object.assign(clone(T.dashboard), { idDashboard: o.idDash })];
+  o2.dashboardNameList = [{ idDashboard: o.idDash, idLanguage: 'ES', name: o.name }];
+  o2.dashboardBlockList = [Object.assign(clone(T.dashBlock), { idDashboard: o.idDash, idBlock: o.idBlock, posX:0, posY:0, useGlobalFilter:true })];
+  o2.blockList = [Object.assign(clone(blkSrc), { idBlock: o.idBlock, guid: gid, hideHeader: false, ignoreDates: !!o.ignoreDates })];
+  o2.blockTableList = [Object.assign(clone(T.table), { idBlock: o.idBlock })];
+  copyTableBlock(d, src, o.idBlock, o2);
+  if (!o2.blockDataSourceList.length) warnings.push('El bloque no tiene fuente de datos asociada.');
+
+  const filtersOf = id => (d.blockFilterList||[]).filter(x => x.idBlock===id).map(x => x.idFilter);
+  const globalFilters = o.includeGlobal ? (d.blockList||[]).filter(b => b.type===4).flatMap(b => filtersOf(b.idBlock)) : [];
+  if (buildFilter(d, [...filtersOf(src), ...globalFilters], o.idFilter, o2, warnings)){
+    o2.blockFilterList = [{ idBlock: o.idBlock, idFilter: o.idFilter }];
+    if (o.includeGlobal && o2.filterConditionList.some(c => c.askBefore))
+      warnings.push('Hay condiciones con “preguntar antes” (askBefore) del filtro global; comprueba que la exportación las pida al ejecutarse.');
+  } else warnings.push('El bloque no tenía filtro: se exporta sin filtro ni rango de fechas propio.');
+
+  o2.blockActionList = [Object.assign(clone(T.action), { blockActionId: o.idAction, idBlock: o.idBlock, guid: gid })];
+  o2.blockActionNameList = [{ id: o.idAction, idLanguage: 'ES', name: o.actionName, changeOwner: 1 }];
+  const tplProfileId = T.profile.exportationProfileId; let linked = false;
+  o2.blockActionParamValueList = T.params.map(p => {
+    p = Object.assign(clone(p), { blockActionId: o.idAction });
+    if (p.valueInteger === tplProfileId && !linked){ p.valueInteger = o.idProfile; linked = true; }
+    return p;
+  });
+  if (!linked) warnings.push('No se encontró en la plantilla el parámetro que enlaza el perfil; revísalo a mano.');
+  for (const k of T.topKeys) out[k] = [];
+  out.exportationProfiles = [Object.assign(clone(T.profile), { exportationProfileId: o.idProfile, name: o.profileName, fileName: o.fileName,
+    fieldSeparator: o.fieldSep, decimalSeparator: o.decSep, showTotals: !!o.totals })];
+
+  const shown = o2.blockColumnList.filter(c => c.isShown).length;
+  if (!shown) warnings.push('El bloque no tiene columnas visibles: el CSV saldría vacío.');
+  checkFormulas(o2, out.masterData, warnings);
+  if (o.idDash === d.dashboardList[0].idDashboard) warnings.push('El ID del dashboard es el mismo que el original: al importarlo podría sobrescribirlo.');
+  return { json: out, warnings, stats: { columns: o2.blockColumnList.length, shown, conditions: o2.filterConditionList.length, formulas: o2.blockColumnFormulaList.length } };
+}
+
+// ---- Exportación -> Informe/dashboard ----
+function convertToReport(E, T, o){
+  const e = E.dashboardsData, warnings = [], src = o.blockId;
+  const blkSrc = e.blockList.find(b => b.idBlock===src);
+  if (!blkSrc) throw new Error('No se encontró el bloque ' + src);
+  const out = { masterData: clone(E.masterData || {}) };
+  const o2 = out.dashboardsData = emptyDash(T, e);
+  o2.dashboardList = [Object.assign(clone(T.dashboard), { idDashboard: o.idDash })];
+  o2.dashboardNameList = [{ idDashboard: o.idDash, idLanguage: 'ES', name: o.name }];
+  const tdb = T.tableDashBlock || { posX:0, width:10, height:20 };
+  const srcDb = (e.dashboardBlockList||[]).find(x => x.idBlock===src) || {};
+
+  o2.dashboardBlockList = []; o2.blockList = []; o2.blockFilterList = [];
+  let y = 0;
+  if (o.addGlobal){
+    o2.dashboardBlockList.push(Object.assign(clone(T.globalDashBlock), { idDashboard: o.idDash, idBlock: o.idGBlock, posX:0, posY:0, useGlobalFilter:false }));
+    o2.blockList.push(Object.assign(clone(T.globalBlock), { idBlock: o.idGBlock, guid: uuid() }));
+    o2.blockGlobalFilterList = [Object.assign(clone(T.globalFilterCfg), { idBlock: o.idGBlock })];
+    o2.blockFilterList.push({ idBlock: o.idGBlock, idFilter: o.idGFilter });
+    o2.filterList = [Object.assign(clone(T.globalFilter), { idFilter: o.idGFilter })];
+    o2.filterNameList = [{ idFilter: o.idGFilter, idLanguage: 'ES', name: '' }];
+    o2.filterBlockList = [{ idFilterBlock: o.idGFilter, idFilter: o.idGFilter, logicOperator: 1, negation: false }];
+    o2.filterGroupList = [{ idFilterGroup: o.idGFilter, idFilterBlock: o.idGFilter, logicOperator: 1, negation: false }];
+    y = (T.globalDashBlock && T.globalDashBlock.height) || 1;
+  }
+  o2.dashboardBlockList.push({ idDashboard: o.idDash, idBlock: o.idBlock, posX: 0, posY: y,
+    width: srcDb.width || tdb.width || 10, height: Math.max(tdb.height || 20, srcDb.height || 0), useGlobalFilter: true });
+  o2.blockList.push(Object.assign(clone(blkSrc), { idBlock: o.idBlock, guid: uuid(), ignoreDates: !!o.ignoreDates }));
+  o2.blockTableList = [Object.assign(clone(T.table), { idBlock: o.idBlock })];
+  copyTableBlock(e, src, o.idBlock, o2);
+  if (o.title){
+    const es = o2.blockNameList.find(x => x.idLanguage==='ES');
+    if (es) es.name = o.title; else o2.blockNameList.push({ idBlock: o.idBlock, idLanguage: 'ES', name: o.title });
+    o2.blockList[o2.blockList.length-1].hideHeader = false;
+  }
+  if (!o2.blockDataSourceList.length) warnings.push('El bloque no tiene fuente de datos asociada.');
+
+  const srcFilters = (e.blockFilterList||[]).filter(x => x.idBlock===src).map(x => x.idFilter);
+  if (buildFilter(e, srcFilters, o.idFilter, o2, warnings)) o2.blockFilterList.push({ idBlock: o.idBlock, idFilter: o.idFilter });
+  else warnings.push('El bloque de la exportación no tenía filtro.');
+
+  // Lo propio de la exportación se descarta
+  for (const k of ['blockActionList','blockActionNameList','blockActionParamValueList']) o2[k] = [];
+  for (const k of T.topKeys) out[k] = [];
+  const acts = (e.blockActionList||[]).filter(a => a.idBlock===src).length;
+  if (acts) warnings.push('Se quitó la acción de exportación (' + acts + ') y no se incluye el perfil de exportación' + ((E.exportationProfiles||[])[0] ? ' “' + E.exportationProfiles[0].name + '”' : '') + '.');
+  if ((e.blockList||[]).length > 1) warnings.push('La exportación tenía ' + e.blockList.length + ' bloques; sólo se convirtió el elegido.');
+
+  const shown = o2.blockColumnList.filter(c => c.isShown).length;
+  if (!shown) warnings.push('El bloque no tiene columnas visibles: la tabla se vería vacía.');
+  checkFormulas(o2, out.masterData, warnings);
+  if (o.idDash === e.dashboardList[0].idDashboard) warnings.push('El ID del dashboard es el mismo que el original: al importarlo podría sobrescribirlo.');
+  return { json: out, warnings, stats: { columns: o2.blockColumnList.length, shown, conditions: o2.filterConditionList.length, formulas: o2.blockColumnFormulaList.length } };
+}
+
+// ---- Modelo de vista previa de un bloque tabla ----
+function previewModel(J, blockId){
+  const d = J.dashboardsData, m = J.masterData || {};
+  const pick = (list, id) => { const l = (list||[]).filter(x => x.id===id && x.name); return (l.find(x=>x.idLanguage==='ES')||l[0]||{}).name || ''; };
+  const cols = (d.blockColumnList||[]).filter(c => c.idBlock===blockId).sort((a,b) => a.position-b.position);
+  const metrics = {}; for (const x of (m.metricList||[])) metrics[x.idMetric] = x;
+  const byInternal = {};
+  for (const f of (d.blockColumnFormulaList||[]).filter(x => x.idBlock===blockId)){
+    const mt = metrics[f.idMetric]; if (!mt) continue;
+    for (const r of String(mt.formula||'').matchAll(/"type"\s*:\s*"ColumnFormula"\s*,\s*"value"\s*:\s*"(\d+)"\s*,\s*"displayValue"\s*:\s*"((?:[^"\\]|\\.)*)"/g))
+      byInternal[+r[1]] = r[2];
+  }
+  // Diccionario global: referencias a atributos/métricas dentro de cualquier fórmula del masterData
+  const refs = {};
+  const walk = o => { if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === 'object'){
+      if ((o.type === 'Attribute' || o.type === 'Metric') && o.value != null && o.displayValue) refs[(o.type === 'Metric' ? 'met:' : 'attr:') + o.value] = o.displayValue;
+      for (const k in o) walk(o[k]); } };
+  for (const x of (m.metricList||[])) { try { walk(JSON.parse(x.formula)); } catch(e){} }
+  const titles = {}; for (const t of (d.blockColumnTitleList||[]).filter(x => x.idBlock===blockId)) if (!titles[t.position] || t.idLanguage==='ES') titles[t.position] = t.subtitle;
+  const styles = (d.blockColumnStyleList||[]).filter(x => x.idBlock===blockId);
+  const formulaText = id => { const mt = metrics[id]; if (!mt) return ''; const r = String(mt.formula||'').match(/"string"\s*:\s*"((?:[^"\\]|\\.)*)"\s*}\s*$/); return r ? r[1].replace(/\\"/g,'"') : ''; };
+  const out = cols.map(c => {
+    const isM = c.idMetric != null, id = isM ? c.idMetric : c.idAttribute;
+    const subtitle = titles[c.position] || '';
+    let jsonName = pick(isM ? m.metricNameList : m.attributeNameList, id), jsonHow = 'nombre en el JSON';
+    if (!jsonName && refs[(isM ? 'met:' : 'attr:') + id]){ jsonName = refs[(isM ? 'met:' : 'attr:') + id]; jsonHow = 'referencia en una fórmula'; }
+    if (!jsonName && byInternal[c.idInternal]){ jsonName = byInternal[c.idInternal]; jsonHow = 'nombre usado en una fórmula'; }
+    let name = titles[c.position], how = 'subtítulo';
+    if (!name){ name = pick(isM ? m.metricNameList : m.attributeNameList, id); how = 'nombre'; }
+    const ref = refs[(isM ? 'met:' : 'attr:') + id] || '';
+    if (!name && ref){ name = ref; how = 'referencia en fórmula'; }
+    if (!name && byInternal[c.idInternal]){ name = byInternal[c.idInternal]; how = 'fórmula'; }
+    if (!name){ name = ''; how = null; }
+    const own = how === 'subtítulo' ? (pick(isM ? m.metricNameList : m.attributeNameList, id) || ref) : '';
+    const mt = isM ? metrics[id] : null;
+    const st = styles.filter(s => s.idInternal===c.idInternal).map(s => ({ color: s.textColor || s.backgroundColor || '', bg: !s.textColor && !!s.backgroundColor, cond: formulaText(s.idMetric) || ('métrica ' + s.idMetric) }));
+    return { pos: c.position, isMetric: isM, id, idInternal: c.idInternal, name, how, shown: !!c.isShown, total: c.totalType > 0,
+      numeric: isM ? (mt ? mt.alignment === 1 || /BigDecimal|Integer/.test(mt.formula||'') : true) : false,
+      formula: isM ? formulaText(id) : '', styles: st, orig: own && own !== name ? own : '', subtitle, jsonName, jsonHow };
+  });
+  const tbl = (d.blockTableList||[]).find(t => t.idBlock===blockId) || {};
+  const blk = (d.blockList||[]).find(b => b.idBlock===blockId) || {};
+  const fIds = (d.blockFilterList||[]).filter(x => x.idBlock===blockId).map(x => x.idFilter);
+  const flt = (d.filterList||[]).find(f => fIds.includes(f.idFilter));
+  const fb = new Set((d.filterBlockList||[]).filter(x => fIds.includes(x.idFilter)).map(x => x.idFilterBlock));
+  const fg = new Set((d.filterGroupList||[]).filter(x => fb.has(x.idFilterBlock)).map(x => x.idFilterGroup));
+  const rows = new Set((d.filterRowList||[]).filter(r => fg.has(r.idFilterGroup)).map(r => r.idFilterRow));
+  const nameById = {}; for (const k in refs) if (k.startsWith('attr:')) nameById[+k.slice(5)] = refs[k]; for (const c of out) if (!c.isMetric && c.name) nameById[c.id] = c.name;
+  const conds = (d.filterConditionList||[]).filter(c => rows.has(c.idFilterRow)).map(c => ({ attr: c.idAttribute, name: nameById[c.idAttribute] || '', op: c.logicOperator, value: c.value, value2: c.value2, ask: !!c.askBefore, neg: !!c.negation, row: c.idFilterRow }));
+  const isExp = isExport(J);
+  const refNames = refs;
+  return { refNames, columns: out, title: blk.hideHeader ? '' : ((d.blockNameList||[]).filter(x => x.idBlock===blockId && x.name).sort((a,b) => (b.idLanguage==='ES') - (a.idLanguage==='ES'))[0] || {}).name || '',
+    table: { checkbox: !!(tbl.isMultiselection || tbl.showSelectionCheckbox), rowNumbers: !!tbl.showRowNumbers, totals: !!tbl.showTotals, filters: !!tbl.showFilters, limit: tbl.limit, adaptative: !!tbl.limitAdaptative },
+    ignoreDates: !!blk.ignoreDates, dates: flt ? [flt.dateValue, flt.dateValue2] : null, conditions: conds, isExport: isExp,
+    profile: isExp ? (J.exportationProfiles||[])[0] || null : null, hasGlobal: (d.blockList||[]).some(b => b.type===4) };
+}
+
+// ---- Validación sin conexión de un JSON de HiOffice (dashboard / exportación) ----
+// Devuelve una lista de comprobaciones { level: 'ok'|'warn'|'error', area, msg }.
+function validate(J){
+  const R = [], add = (level, area, msg) => R.push({ level, area, msg });
+  const d = J && J.dashboardsData, m = (J && J.masterData) || {};
+  if (!d || !Array.isArray(d.dashboardList)) { add('error', 'Estructura', 'Falta dashboardsData.dashboardList: no es un JSON de dashboard/exportación de HiOffice.'); return summarize(R); }
+  if (!J.masterData) add('warn', 'Estructura', 'Falta masterData (métricas y atributos personalizados).');
+  if (d.dashboardList.length !== 1) add('error', 'Estructura', 'Debe haber exactamente 1 dashboard y hay ' + d.dashboardList.length + '.');
+  const dash = d.dashboardList[0] || {};
+  const exp = isExport(J);
+  add('ok', 'Estructura', 'Tipo detectado: ' + (exp ? 'exportación (tipo ' + dash.type + ')' : 'dashboard / informe (tipo ' + dash.type + ')') + '.');
+  const L = k => Array.isArray(d[k]) ? d[k] : [];
+  if (!L('dashboardNameList').some(x => x.idDashboard === dash.idDashboard && x.name)) add('warn', 'Nombre', 'El dashboard no tiene nombre en ningún idioma.');
+
+  // Bloques
+  const blocks = new Map(L('blockList').map(b => [b.idBlock, b]));
+  if (!blocks.size) add('error', 'Bloques', 'No hay bloques.');
+  if (blocks.size !== L('blockList').length) add('error', 'Bloques', 'Hay IDs de bloque repetidos en blockList.');
+  const placed = new Set();
+  for (const db of L('dashboardBlockList')){
+    if (db.idDashboard !== dash.idDashboard) add('error', 'Bloques', 'dashboardBlockList apunta al dashboard ' + db.idDashboard + ', que no es este (' + dash.idDashboard + ').');
+    if (!blocks.has(db.idBlock)) add('error', 'Bloques', 'dashboardBlockList usa el bloque ' + db.idBlock + ', que no existe en blockList.');
+    placed.add(db.idBlock);
+  }
+  for (const id of blocks.keys()) if (!placed.has(id)) add('error', 'Bloques', 'El bloque ' + id + ' no está colocado en el dashboard (falta en dashboardBlockList).');
+  const perBlock = ['blockTableList','blockColumnList','blockColumnTitleList','blockColumnStyleList','blockColumnFormulaList','blockDataSourceList','blockNameList',
+    'blockStyleConfigurationList','blockFilterList','blockGlobalFilterList','blockActionList'];
+  for (const k of perBlock){
+    const bad = [...new Set(L(k).filter(x => !blocks.has(x.idBlock)).map(x => x.idBlock))];
+    if (bad.length) add('error', 'Bloques', k + ' hace referencia a bloques que no existen: ' + bad.join(', ') + '.');
+  }
+  const guids = L('blockList').map(b => b.guid).filter(Boolean);
+  if (new Set(guids).size !== guids.length) add('warn', 'Bloques', 'Hay bloques con el mismo GUID.');
+
+  // Tablas y columnas
+  const metrics = new Map((m.metricList||[]).map(x => [x.idMetric, x]));
+  const tables = L('blockTableList');
+  if (!tables.length && exp) add('error', 'Tabla', 'La exportación no tiene ningún bloque de tabla.');
+  for (const t of tables){
+    const id = t.idBlock, tag = 'Tabla ' + id;
+    const cols = L('blockColumnList').filter(c => c.idBlock === id);
+    if (!cols.length) { add('error', tag, 'No tiene columnas.'); continue; }
+    const shown = cols.filter(c => c.isShown).length;
+    if (!shown) add('error', tag, 'No tiene columnas visibles: saldría vacía.');
+    else add('ok', tag, cols.length + ' columnas (' + shown + ' visibles).');
+    if (!L('blockDataSourceList').some(x => x.idBlock === id)) add('error', tag, 'No tiene origen de datos (blockDataSourceList).');
+    const dupPos = cols.map(c => c.position).filter((p,i,a) => a.indexOf(p) !== i);
+    if (dupPos.length) add('error', tag, 'Posiciones de columna repetidas: ' + [...new Set(dupPos)].join(', ') + '.');
+    const internals = new Set(cols.map(c => c.idInternal));
+    if (internals.size !== cols.length) add('error', tag, 'Hay columnas con el mismo idInternal.');
+    for (const c of cols) if (c.idAttribute == null && c.idMetric == null) add('error', tag, 'La columna en posición ' + c.position + ' no tiene atributo ni métrica.');
+    const formulaIds = new Set(L('blockColumnFormulaList').filter(x => x.idBlock === id).map(x => x.idMetric));
+    for (const fid of formulaIds){
+      const mt = metrics.get(fid);
+      if (!mt) { add('error', tag, 'La fórmula ' + fid + ' no está definida en masterData.metricList.'); continue; }
+      if (!cols.some(c => c.idMetric === fid) && !L('blockColumnStyleList').some(s => s.idBlock === id && s.idMetric === fid))
+        add('warn', tag, 'La fórmula ' + fid + ' está declarada pero ninguna columna ni estilo la usa.');
+      for (const r of String(mt.formula||'').matchAll(/"type"\s*:\s*"ColumnFormula"\s*,\s*"value"\s*:\s*"(\d+)"/g))
+        if (!internals.has(+r[1])) add('error', tag, 'La fórmula ' + fid + ' usa la columna idInternal ' + r[1] + ', que no está en la tabla.');
+    }
+    for (const s of L('blockColumnStyleList').filter(x => x.idBlock === id)){
+      if (!internals.has(s.idInternal)) add('error', tag, 'Un estilo de color apunta a la columna idInternal ' + s.idInternal + ', que no existe.');
+      if (s.idMetric != null && !metrics.has(s.idMetric)) add('error', tag, 'Un estilo de color usa la fórmula ' + s.idMetric + ', que no está en masterData.');
+    }
+    if ((t.limit|0) <= 0 && !exp) add('warn', tag, 'Filas por página (limit) es ' + t.limit + '.');
+  }
+
+  // Filtros
+  const filters = new Map(L('filterList').map(f => [f.idFilter, f]));
+  for (const bf of L('blockFilterList')) if (!filters.has(bf.idFilter)) add('error', 'Filtros', 'El bloque ' + bf.idBlock + ' usa el filtro ' + bf.idFilter + ', que no existe en filterList.');
+  const fbs = new Set(L('filterBlockList').map(x => x.idFilterBlock));
+  for (const x of L('filterBlockList')) if (!filters.has(x.idFilter)) add('error', 'Filtros', 'filterBlockList ' + x.idFilterBlock + ' apunta al filtro ' + x.idFilter + ', que no existe.');
+  const fgs = new Set(L('filterGroupList').map(x => x.idFilterGroup));
+  for (const x of L('filterGroupList')) if (!fbs.has(x.idFilterBlock)) add('error', 'Filtros', 'filterGroupList ' + x.idFilterGroup + ' apunta a un filterBlock inexistente (' + x.idFilterBlock + ').');
+  const frs = new Set(L('filterRowList').map(x => x.idFilterRow));
+  for (const x of L('filterRowList')) if (!fgs.has(x.idFilterGroup)) add('error', 'Filtros', 'filterRowList ' + x.idFilterRow + ' apunta a un grupo inexistente (' + x.idFilterGroup + ').');
+  for (const x of L('filterConditionList')) if (!frs.has(x.idFilterRow)) add('error', 'Filtros', 'La condición ' + x.idFilterCondition + ' apunta a una fila de filtro inexistente (' + x.idFilterRow + ').');
+  const usedF = new Set(L('blockFilterList').map(x => x.idFilter));
+  for (const id of filters.keys()) if (!usedF.has(id)) add('warn', 'Filtros', 'El filtro ' + id + ' no lo usa ningún bloque.');
+  for (const f of filters.values()) if (f.dateValue && f.dateValue2 && new Date(f.dateValue.replace(/\//g,'-')) > new Date(f.dateValue2.replace(/\//g,'-'))) add('warn', 'Filtros', 'El filtro ' + f.idFilter + ' tiene la fecha inicial posterior a la final.');
+  if (!R.some(r => r.area === 'Filtros' && r.level === 'error')) add('ok', 'Filtros', filters.size + ' filtro(s), ' + L('filterConditionList').length + ' condición(es); referencias correctas.');
+
+  // Filtro global (informes)
+  for (const b of L('blockList').filter(b => b.type === 4))
+    if (!L('blockGlobalFilterList').some(x => x.idBlock === b.idBlock)) add('error', 'Filtro global', 'El bloque de filtro global ' + b.idBlock + ' no tiene configuración (blockGlobalFilterList).');
+
+  // Exportación
+  const profiles = Array.isArray(J.exportationProfiles) ? J.exportationProfiles : [];
+  if (exp){
+    if (dash.type !== 6) add('warn', 'Exportación', 'Tiene acción y perfil de exportación pero el dashboard es de tipo ' + dash.type + ' (las exportaciones por tabla usan el tipo 6).');
+    const acts = L('blockActionList');
+    if (!acts.length) add('error', 'Exportación', 'No hay acción de exportación en ningún bloque (blockActionList).');
+    for (const a of acts){
+      if (a.blockActionTypeId !== 12002) add('warn', 'Exportación', 'La acción ' + a.blockActionId + ' es de tipo ' + a.blockActionTypeId + ' (la de exportación conocida es 12002).');
+      if (!tables.some(t => t.idBlock === a.idBlock)) add('error', 'Exportación', 'La acción ' + a.blockActionId + ' está en el bloque ' + a.idBlock + ', que no es una tabla.');
+      const params = L('blockActionParamValueList').filter(p => p.blockActionId === a.blockActionId);
+      if (!params.length) add('error', 'Exportación', 'La acción ' + a.blockActionId + ' no tiene parámetros.');
+      const link = params.find(p => p.blockActionTypeParamId === 31);
+      const prof = link && profiles.find(p => p.exportationProfileId === link.valueInteger);
+      if (!link) add('error', 'Exportación', 'La acción ' + a.blockActionId + ' no tiene el parámetro 31 (perfil de exportación).');
+      else if (!prof) add('error', 'Exportación', 'La acción apunta al perfil ' + link.valueInteger + ', que no está en exportationProfiles.');
+      else add('ok', 'Exportación', 'Acción ' + a.blockActionId + ' enlazada al perfil “' + prof.name + '” (' + prof.exportationProfileId + ').');
+    }
+    for (const p of profiles){
+      const tag = 'Perfil ' + p.exportationProfileId;
+      if (!p.name) add('warn', tag, 'El perfil no tiene nombre.');
+      if (!p.doCsv && !p.doPdf) add('error', tag, 'No genera CSV ni PDF.');
+      if (p.doCsv){
+        if (!p.fieldSeparator) add('error', tag, 'Falta el separador de campos del CSV.');
+        if (!p.decimalSeparator) add('warn', tag, 'Falta el separador decimal.');
+        if (p.fieldSeparator && p.fieldSeparator === p.decimalSeparator) add('error', tag, 'El separador de campos y el decimal son iguales (“' + p.fieldSeparator + '”): el CSV no se podría leer.');
+      }
+      if (!p.fileName) add('warn', tag, 'No tiene nombre de archivo.');
+      if (p.toEmail && !p.email) add('error', tag, 'Envía por email pero no tiene dirección.');
+      if (p.toFtp && (!p.ip || !p.port)) add('error', tag, 'Envía por FTP pero falta servidor o puerto.');
+      if (p.password) add('warn', tag, 'El perfil guarda una contraseña de FTP: cuidado al compartir este JSON.');
+    }
+    const eb = L('dashboardBlockList').filter(x => tables.some(t => t.idBlock === x.idBlock));
+    if (eb.some(x => !x.useGlobalFilter)) add('warn', 'Exportación', 'La tabla no usa el filtro global: no respetará las fechas elegidas al lanzar la exportación.');
+  } else {
+    if (profiles.length) add('warn', 'Exportación', 'Trae perfiles de exportación pero no es una exportación.');
+    if (L('blockActionList').some(a => a.blockActionTypeId === 12002)) add('warn', 'Exportación', 'Tiene una acción de exportación (12002) pero el dashboard no es de tipo exportación.');
+  }
+  return summarize(R);
+}
+function summarize(R){
+  const errors = R.filter(r => r.level === 'error').length, warnings = R.filter(r => r.level === 'warn').length;
+  return { checks: R, errors, warnings, ok: errors === 0 };
+}
+if (typeof module !== 'undefined') module.exports = { convert, convertToReport, analyze, isExport, templateFromExport, previewModel, validate };
+</script>
+<script>
+// ---- Interfaz ----
+const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML;
+const $ = id => document.getElementById(id);
+const DEF_EXP = JSON.parse($('tplExport').textContent), DEF_DASH = JSON.parse($('tplDash').textContent);
+let TE = DEF_EXP, TD = DEF_DASH, J = null, A = null, mode = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function setupDrop(dropId, fileId, onText){
+  const drop = $(dropId), input = $(fileId);
+  drop.onclick = () => input.click();
+  input.onchange = () => { input.files[0] && read(input.files[0]); input.value = ''; };
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); e.dataTransfer.files[0] && read(e.dataTransfer.files[0]); };
+  function read(f){ const r = new FileReader(); r.onload = () => onText(r.result, f.name); r.readAsText(f); }
+}
+function applyMode(){
+  document.querySelectorAll('[data-mode]').forEach(el => el.classList.toggle('hidden', el.dataset.mode !== mode));
+  const toE = mode === 'toExport';
+  $('dirChip').textContent = toE ? 'Dashboard → Exportación' : 'Exportación → Informe';
+  $('lblName').textContent = toE ? 'Nombre de la exportación' : 'Nombre del informe';
+  $('btnGo').textContent = toE ? 'Generar y descargar exportación' : 'Generar y descargar informe';
+  $('tplBox').classList.remove('hidden');
+  $('tplSummary').textContent = toE ? 'Opcional: usar otra exportación como plantilla' : 'Opcional: usar otro informe como plantilla';
+  $('tplHelp').textContent = toE
+    ? 'Por defecto se usa la estructura de “Exportación de Ventas - Facturas”. Si cargas otra exportación, se toman de ella la configuración de tabla, la acción y el perfil (separadores, formato, etc.).'
+    : 'Por defecto se usa la estructura de “Extracto Tesorería 3.0” (barra de filtro global + tabla con totales, filtros y nº de fila). Si cargas otro informe, se toman de él esa configuración.';
+  $('tplInfo').innerHTML = '';
+}
+
+setupDrop('dropSrc','fileSrc',(txt,fname) => {
+  const info = $('srcInfo'); info.classList.remove('hidden');
+  try { J = JSON.parse(txt); A = analyze(J); }
+  catch(err){ J = null; $('secPrev').classList.add('hidden'); info.innerHTML = '<div class="msg warn">'+esc(err.message)+'</div>'; $('secOpts').classList.add('hidden'); $('tplBox').classList.add('hidden'); return; }
+  mode = A.isExport ? 'toReport' : 'toExport';
+  TE = DEF_EXP; TD = DEF_DASH;
+  let html = '<table class="info" style="margin-top:12px"><tr><td>Archivo</td><td>'+esc(fname)+'</td></tr>'
+    + '<tr><td>Detectado</td><td><b>'+(A.isExport ? 'Exportación' : 'Dashboard / informe')+'</b> · tipo '+A.type+'</td></tr>'
+    + '<tr><td>Nombre</td><td>'+esc(A.name||'(sin nombre)')+' · ID '+A.id+'</td></tr>'
+    + (A.profile ? '<tr><td>Perfil</td><td>'+esc(A.profile)+'</td></tr>' : '')
+    + '<tr><td>Bloques</td><td>'+A.blocks.length+' ('+A.tables.length+' de tabla'+(A.globals.length?', '+A.globals.length+' de filtro global':'')+')</td></tr></table>';
+  if (!A.tables.length) html += '<div class="msg warn">No hay bloques de tabla: sólo se pueden convertir JSON con una tabla.</div>';
+  info.innerHTML = html;
+  if (!A.tables.length) { $('secOpts').classList.add('hidden'); $('tplBox').classList.add('hidden'); return; }
+  applyMode();
+  $('blocks').innerHTML = '<div style="font-size:13px;color:var(--muted)">Bloque de tabla a convertir</div>' + A.tables.map((b,i) =>
+    '<label><input type="radio" name="blk" value="'+b.id+'"'+(i?'':' checked')+'> '+esc(b.name||'Bloque '+b.id)+' <span style="color:var(--muted)">· ID '+b.id+' · '+b.shown+' de '+b.columns+' columnas visibles</span></label>').join('');
+  document.querySelectorAll('input[name=blk]').forEach(r => r.onchange = syncBlock);
+
+  const ids = collectIds(J), next = (set, start) => { let n = start; while (set.has(n)) n++; return n; };
+  const maxOf = set => Math.max(0, ...set);
+  $('idDash').value = next(ids.dash, A.id + 1);
+  const blockId = next(ids.block, maxOf(ids.block) + 1);
+  $('idBlock').value = blockId;
+  const filterId = next(ids.filter, maxOf(ids.filter) + 1);
+  $('idFilter').value = filterId;
+  if (mode === 'toExport'){
+    const base = A.name || 'Dashboard';
+    $('oName').value = 'Exportación ' + base; $('oAction').value = 'Exportación ' + base; $('oProfile').value = 'Exportación ' + base;
+    $('oFile').value = base.replace(/[\\/:*?"<>|]/g,'').trim();
+    $('idAction').value = next(ids.action, Math.max(maxOf(ids.action) + 1, blockId));
+    $('idProfile').value = Math.max(TE.profile.exportationProfileId + 1, blockId);
+    $('oGlobal').checked = false;
+    fillProfileDefaults();
+  } else {
+    const base = (A.name || A.profile || 'Exportación').replace(/^\s*Exportaci[oó]n( de)?\s*/i, '').trim() || A.name;
+    $('oName').value = base; $('oTitle').value = base;
+    $('idGBlock').value = blockId + 1; $('idGFilter').value = filterId + 1;
+    $('oAddGlobal').checked = true;
+  }
+  syncBlock();
+  $('result').innerHTML = '';
+  $('secOpts').classList.remove('hidden');
+  previewSource();
+});
+
+function collectIds(J){
+  const d = J.dashboardsData;
+  return { dash: new Set(d.dashboardList.map(x => x.idDashboard)), block: new Set((d.blockList||[]).map(x => x.idBlock)),
+    filter: new Set((d.filterList||[]).map(x => x.idFilter)), action: new Set((d.blockActionList||[]).map(x => x.blockActionId)) };
+}
+function fillProfileDefaults(){ $('oFieldSep').value = TE.profile.fieldSeparator; $('oDecSep').value = TE.profile.decimalSeparator; $('oTotals').checked = !!TE.profile.showTotals; }
+function previewSource(){ const id = +document.querySelector('input[name=blk]:checked').value; showPreview(J, id, 'Tabla del archivo de origen (' + (A.isExport ? 'exportación' : 'informe') + '). Al generar se mostrará la del resultado.'); }
+function syncBlock(){
+  const id = +document.querySelector('input[name=blk]:checked').value;
+  if (PV) previewSource();
+  $('oIgnoreDates').checked = !!J.dashboardsData.blockList.find(x => x.idBlock === id).ignoreDates;
+}
+
+setupDrop('dropTpl','fileTpl',(txt,fname) => {
+  try {
+    const P = JSON.parse(txt);
+    if (mode === 'toExport'){ TE = templateFromExport(P); fillProfileDefaults(); $('tplInfo').innerHTML = '<div class="msg ok">Plantilla de exportación cargada: '+esc(TE.profile.name)+' ('+esc(fname)+')</div>'; }
+    else { TD = templateFromDashboard(P); $('tplInfo').innerHTML = '<div class="msg ok">Plantilla de informe cargada ('+esc(fname)+')</div>'; }
+  } catch(err){ $('tplInfo').innerHTML = '<div class="msg warn">'+esc(err.message)+'</div>'; }
+});
+
+$('btnGo').onclick = () => {
+  const num = id => parseInt($(id).value, 10);
+  const base = { blockId: +document.querySelector('input[name=blk]:checked').value, name: $('oName').value.trim(),
+    idDash: num('idDash'), idBlock: num('idBlock'), idFilter: num('idFilter'), ignoreDates: $('oIgnoreDates').checked };
+  let opts, idKeys;
+  if (mode === 'toExport'){
+    opts = Object.assign(base, { actionName: $('oAction').value.trim(), profileName: $('oProfile').value.trim(), fileName: $('oFile').value.trim(),
+      fieldSep: $('oFieldSep').value || ';', decSep: $('oDecSep').value || ',', idAction: num('idAction'), idProfile: num('idProfile'),
+      includeGlobal: $('oGlobal').checked, totals: $('oTotals').checked });
+    idKeys = ['idDash','idBlock','idFilter','idAction','idProfile'];
+  } else {
+    opts = Object.assign(base, { title: $('oTitle').value.trim(), addGlobal: $('oAddGlobal').checked, idGBlock: num('idGBlock'), idGFilter: num('idGFilter') });
+    idKeys = ['idDash','idBlock','idFilter'].concat(opts.addGlobal ? ['idGBlock','idGFilter'] : []);
+  }
+  if (idKeys.some(k => !Number.isFinite(opts[k]))) { $('result').innerHTML = '<div class="msg warn">Revisa los IDs: todos deben ser números.</div>'; return; }
+  if (mode === 'toReport' && opts.addGlobal && (opts.idGBlock === opts.idBlock || opts.idGFilter === opts.idFilter)) { $('result').innerHTML = '<div class="msg warn">Los IDs del filtro global y de la tabla no pueden coincidir.</div>'; return; }
+  try {
+    const r = mode === 'toExport' ? convert(J, TE, opts) : convertToReport(J, TD, opts);
+    const blob = new Blob([JSON.stringify(r.json, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    const fname = (mode === 'toExport' ? 'Exportacion_' + (opts.fileName || 'dashboard') : 'Informe_' + (opts.name || 'exportacion')).replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_');
+    a.download = fname + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    let html = '<div class="msg ok">'+(mode === 'toExport' ? 'Exportación generada' : 'Informe generado')+': '+r.stats.columns+' columnas ('+r.stats.shown+' visibles), '+r.stats.formulas+' fórmulas, '+r.stats.conditions+' condiciones de filtro.</div>';
+    if (r.warnings.length) html += '<div class="msg warn">Revisar:<ul>'+r.warnings.map(w => '<li>'+esc(w)+'</li>').join('')+'</ul></div>';
+    $('result').innerHTML = html;
+    { const V = validate(r.json); const box = document.createElement('div'); $('result').appendChild(box); box.id = 'resultVal'; renderChecks('resultVal', V, 'Validación del archivo generado'); }
+    showPreview(r.json, opts.idBlock, 'Tabla del archivo generado (' + (mode === 'toExport' ? 'exportación: así saldrán las columnas en el CSV' : 'informe') + ').');
+  } catch(err){ $('result').innerHTML = '<div class="msg warn">'+esc(err.message)+'</div>'; }
+};
+
+// ---- Nombres de columnas ----
+const DICT = (() => { try { return JSON.parse($('dict').textContent) || {}; } catch(e){ return {}; } })();
+const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+const lsSet = (k,v) => { try { v ? localStorage.setItem(k,v) : localStorage.removeItem(k); } catch(e){} };
+const loadObj = k => { try { return JSON.parse(lsGet(k) || '{}') || {}; } catch(e){ return {}; } };
+let USER = loadObj('hio-names'), AUTO = loadObj('hio-auto');
+const saveUser = () => { lsSet('hio-names', JSON.stringify(USER)); if (typeof storePut === 'function') storePut('names', USER); };
+const keyOf = c => (c.isMetric ? 'met:' : 'attr:') + c.id;
+function learn(M){
+  let ch = false;
+  const add = (k,v) => { if (v && !AUTO[k]) { AUTO[k] = v; ch = true; } };
+  for (const k in M.refNames) add(k, M.refNames[k]);
+  for (const c of M.columns) add(keyOf(c), c.jsonName);
+  if (ch) { lsSet('hio-auto', JSON.stringify(AUTO)); if (typeof storePut === 'function') storePut('auto', AUTO); }
+}
+function baseName(k){
+  if (USER[k]) return { name: USER[k], src: 'tuyo' };
+  if (DICT[k]) return { name: DICT[k], src: 'incluido en el programa' };
+  return null;
+}
+function resolve(c){
+  const k = keyOf(c);
+  if (c.subtitle) return { name: c.subtitle, src: 'subtítulo del bloque' };
+  return baseName(k) || (c.jsonName ? { name: c.jsonName, src: c.jsonHow } : null) || (AUTO[k] ? { name: AUTO[k], src: 'aprendido de otro JSON' } : { name: '', src: '' });
+}
+function attrName(id){
+  const k = 'attr:' + id, b = baseName(k); if (b) return b.name;
+  const c = PV && PV.model.columns.find(x => !x.isMetric && x.id===id && (x.subtitle || x.jsonName));
+  return (c && (c.subtitle || c.jsonName)) || (PV && PV.model.refNames[k]) || AUTO[k] || '';
+}
+function setName(k, v){ v = (v||'').trim(); if (v) USER[k] = v; else delete USER[k]; saveUser(); renderPreview(); }
+
+// ---- Vista previa ----
+let PV = null;
+function showPreview(Jx, blockId, label){
+  try { PV = { model: previewModel(Jx, blockId), label }; } catch(e){ PV = null; $('secPrev').classList.add('hidden'); $('secNames').classList.add('hidden'); return; }
+  learn(PV.model);
+  renderPreview(); $('secPrev').classList.remove('hidden'); $('secNames').classList.remove('hidden');
+}
+const fmtDate = s => { const p = String(s||'').split(/[\/\-]/); return p.length === 3 ? p[2].padStart(2,'0') + '/' + p[1].padStart(2,'0') + '/' + p[0] : s; };
+function renderPreview(){
+  if (!PV) return;
+  const M = PV.model, showHidden = $('pvHidden').checked, showIds = $('pvIds').checked;
+  const cols = M.columns.filter(c => c.shown || showHidden);
+  const T = M.table;
+  $('pvDates').innerHTML = M.isExport ? '<span style="font-size:13px;color:var(--muted)">Exportación CSV · el rango de fechas se elige al ejecutarla</span>'
+    : M.hasGlobal ? '<span class="arr">‹</span>' + (M.dates ? esc(fmtDate(M.dates[0]) + ' - ' + fmtDate(M.dates[1])) : 'Rango de fechas') + '<span class="arr">›</span> 📅' : '';
+  $('pvTitle').textContent = M.title || '';
+  $('pvTitle').classList.toggle('hidden', !M.title);
+  const lead = (T.checkbox ? '<th class="cb">' : '') ;
+  let h = '<thead><tr class="h">' + (T.checkbox ? '<th class="cb"></th>' : '') + (T.rowNumbers ? '<th class="rn"></th>' : '');
+  for (const c of cols){
+    const r = resolve(c), unk = !r.name;
+    const meta = [c.isMetric ? 'Métrica ' + c.id : 'Atributo ' + c.id];
+    if (c.total) meta.push('Σ'); if (!c.shown) meta.push('oculta');
+    const tip = (r.src ? 'Nombre: ' + r.src + '\n' : '') + meta.join(' · ') + (c.formula ? '\nFórmula: ' + c.formula : '') + c.styles.map(s => '\nColor ' + s.color + ' si ' + s.cond).join('');
+    h += '<th class="' + (unk?'unk ':'') + (c.shown?'':'hid') + '" title="' + esc(tip) + '"><span class="lbl" ' + (c.subtitle ? '' : 'contenteditable="true" spellcheck="false" ') + 'data-key="' + keyOf(c) + '">' + esc(unk ? (c.isMetric?'Métrica #':'Atributo #') + c.id : r.name) + '</span>'
+      + (c.formula ? ' <span title="' + esc(c.formula) + '">ƒ</span>' : '')
+      + c.styles.map(s => '<span class="swatch" style="background:' + esc(s.color.slice(0,7)) + '"></span>').join('')
+      + (showIds ? '<span class="meta">' + esc(meta.join(' · ')) + '</span>' : '') + '</th>';
+  }
+  h += '</tr>';
+  if (T.filters){
+    h += '<tr class="f">' + (T.checkbox ? '<th class="cb"><span class="cbx"></span></th>' : '') + (T.rowNumbers ? '<th class="rn"></th>' : '');
+    cols.forEach(c => { h += '<th class="' + (c.shown?'':'hid') + '"><div class="fbox">=</div></th>'; });
+    h += '</tr>';
+  }
+  h += '</thead><tbody>';
+  for (let r = 0; r < 6; r++){
+    h += '<tr>' + (T.checkbox ? '<td class="cb"><span class="cbx"></span></td>' : '') + (T.rowNumbers ? '<td class="rn">' + (r+1) + '</td>' : '');
+    cols.forEach((c,i) => { h += '<td class="' + (c.numeric?'num ':'') + (c.shown?'':'hid') + '"><span class="sk" style="width:' + (c.numeric ? 38 + ((r*13+i*7)%34) : 60 + ((r*37+i*23)%90)) + 'px' + (c.styles.length && r===2 ? ';background:' + esc(c.styles[0].color.slice(0,7)) : '') + '"></span></td>'; });
+    h += '</tr>';
+  }
+  const showTot = M.isExport ? !!(M.profile && M.profile.showTotals) : T.totals;
+  if (showTot){
+    h += '<tr class="tot">' + (T.checkbox ? '<td class="cb"></td>' : '') + (T.rowNumbers ? '<td class="rn" title="Nº de filas"><span class="sk" style="width:24px;background:var(--muted)"></span></td>' : '');
+    cols.forEach((c,i) => { h += '<td class="' + (c.numeric?'num ':'') + (c.shown?'':'hid') + '">' + (c.total && c.numeric ? '<span class="sk" style="width:64px;background:var(--muted)"></span>' : (!T.rowNumbers && i===0 ? 'Total' : '')) + '</td>'; });
+    h += '</tr>';
+  }
+  $('pvTable').innerHTML = h + '</tbody>';
+  $('pvTable').querySelectorAll('[contenteditable]').forEach(el => {
+    el.onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); el.blur(); } if (e.key === 'Escape'){ el.blur(); } };
+    el.onblur = () => { const v = el.textContent.trim(); setName(el.dataset.key, /^(Atributo|Métrica) #\d+$/.test(v) ? '' : v); };
+  });
+  const vis = M.columns.filter(c => c.shown).length, unkVis = M.columns.filter(c => c.shown && !resolve(c).name).length;
+  const tags = [vis + ' columnas visibles de ' + M.columns.length];
+  if (M.isExport){ const p = M.profile || {}; tags.push('CSV · campos “' + (p.fieldSeparator||'') + '” · decimales “' + (p.decimalSeparator||'') + '”'); if (p.fileName) tags.push('Archivo: ' + p.fileName); tags.push(p.showTotals ? 'Con totales' : 'Sin totales'); }
+  else { tags.push(T.limit + ' filas por página'); tags.push(T.totals ? 'Con totales' : 'Sin totales'); if (M.hasGlobal) tags.push('Barra de filtro global'); }
+  tags.push(M.ignoreDates ? 'Ignora fechas' : 'Respeta el rango de fechas');
+  if (unkVis) tags.push(unkVis + ' visibles sin nombre');
+  $('pvTags').innerHTML = tags.map(t => '<span>' + esc(t) + '</span>').join('');
+  $('pvSrc').textContent = PV.label;
+  $('pvFilter').innerHTML = M.conditions.length ? '<b>Filtro fijo del bloque</b> (' + M.conditions.length + ' condiciones):<ul>' + M.conditions.map(c => '<li>' + esc(attrName(c.attr) || 'Atributo #' + c.attr) + ' · operador ' + c.op + (c.value ? ' · valor “' + esc(c.value) + '”' : '') + (c.value2 ? ' / “' + esc(c.value2) + '”' : '') + (c.neg ? ' · negado' : '') + (c.ask ? ' · <b>se pregunta al ejecutar</b>' : '') + '</li>').join('') + '</ul>' : '';
+  renderConfig();
+}
+function renderConfig(){
+  const M = PV.model;
+  let h = '<thead><tr><th>Pos.</th><th>Tipo · ID</th><th>Se ve</th><th>Nombre en pantalla</th><th>Nombre del atributo / métrica</th></tr></thead><tbody>';
+  for (const c of M.columns){
+    const k = keyOf(c), r = resolve(c), b = baseName(k);
+    const suggestion = c.jsonName || AUTO[k] || DICT[k] || '';
+    h += '<tr class="' + (c.shown ? '' : 'off') + '"><td>' + c.pos + '</td><td>' + (c.isMetric ? 'Métrica' : 'Atributo') + ' ' + c.id + '</td><td>' + (c.shown ? 'Sí' : 'Oculta') + '</td>'
+      + '<td>' + (r.name ? esc(r.name) : '<i style="color:var(--muted)">sin nombre</i>') + '<div class="src">' + esc(r.src) + '</div></td>'
+      + '<td><input data-key="' + k + '" value="' + esc(USER[k] || '') + '" placeholder="' + esc(suggestion || 'Escribe el nombre…') + '"></td></tr>';
+  }
+  $('cfgTable').innerHTML = h + '</tbody>';
+  $('cfgTable').querySelectorAll('input').forEach(inp => {
+    inp.onchange = () => setName(inp.dataset.key, inp.value);
+    inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+  });
+}
+$('pvHidden').onchange = renderPreview;
+$('pvIds').onchange = renderPreview;
+
+function download(name, text, type){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const allNames = () => Object.assign({}, DICT, USER);
+$('btnExportNames').onclick = () => download('nombres_columnas_hioffice.json', JSON.stringify(allNames(), null, 2), 'application/json');
+$('btnImportNames').onclick = () => $('fileNames').click();
+$('fileNames').onchange = () => {
+  const f = $('fileNames').files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const o = JSON.parse(r.result); let n = 0;
+      for (const k in o) if (/^(attr|met):-?\d+$/.test(k) && typeof o[k] === 'string' && o[k].trim()) { USER[k] = o[k].trim(); n++; }
+      saveUser(); renderPreview(); $('namesMsg').innerHTML = '<div class="msg ok">Importados ' + n + ' nombres.</div>';
+    } catch(e){ $('namesMsg').innerHTML = '<div class="msg warn">El archivo no es un JSON de nombres válido.</div>'; }
+    $('fileNames').value = '';
+  };
+  r.readAsText(f);
+};
+$('btnBakeNames').onclick = () => {
+  const json = JSON.stringify(allNames(), null, 1).replace(/</g, '\\u003c');
+  const html = PRISTINE.replace(/(<script id="dict" type="application\/json">)[\s\S]*?(<\/script>)/, (m, a, b) => a + json + b);
+  download('Herramientas_HiOffice.html', html, 'text/html');
+  $('namesMsg').innerHTML = '<div class="msg ok">Descargada una copia del programa con ' + Object.keys(allNames()).length + ' nombres incluidos. Usa esa copia a partir de ahora.</div>';
+};
+
+// ================= Pestañas =================
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('hidden', t.id !== 'tab-' + name));
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  $('tabsNav').classList.toggle('hidden', name === 'home');
+  $('leadTxt').classList.toggle('hidden', name !== 'home');
+  const fr = $('frame-' + name), src = $('tool-' + name);
+  if (fr && src && !fr.srcdoc) fr.srcdoc = JSON.parse(src.textContent);   // se carga la primera vez que se abre
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+document.querySelectorAll('.hcard').forEach(b => b.onclick = () => showTab(b.dataset.go));
+showTab('home');   // el programa siempre arranca en la pantalla de inicio
+
+// ================= Validación (pestaña) =================
+function renderChecks(target, V, title){
+  const icon = { ok: '✓', warn: '!', error: '✗' };
+  const head = V.ok ? (V.warnings ? '<div class="msg warn"><b>Sin errores</b>, con ' + V.warnings + ' aviso(s) para revisar.</div>' : '<div class="msg ok"><b>Todo correcto.</b> No se encontraron problemas.</div>')
+    : '<div class="msg err"><b>' + V.errors + ' error(es)</b>' + (V.warnings ? ' y ' + V.warnings + ' aviso(s)' : '') + ': así probablemente no funcione en HiOffice.</div>';
+  const order = { error: 0, warn: 1, ok: 2 };
+  const rows = V.checks.slice().sort((a,b) => order[a.level] - order[b.level]).map(c => '<li class="chk ' + c.level + '"><span class="ic">' + icon[c.level] + '</span><span class="ar">' + esc(c.area) + '</span>' + esc(c.msg) + '</li>').join('');
+  $(target).innerHTML = (title ? '<div style="font-size:13px;color:var(--muted);margin-top:10px">' + esc(title) + '</div>' : '') + head + '<ul class="checks">' + rows + '</ul>';
+}
+setupDrop('dropVal','fileVal',(txt,fname) => {
+  let Jv;
+  try { Jv = JSON.parse(txt); } catch(e){ $('valOut').innerHTML = '<div class="msg err">No es un JSON válido: ' + esc(e.message) + '</div>'; return; }
+  renderChecks('valOut', validate(Jv), fname);
+});
+
+// ================= Pasar a CSV =================
+// Formato en que HiOffice entrega una exportación por tabla:
+// [{"data":[{"0":"3","1":"Aquarius",…}],"columnTypes":["STRING","FLOAT",…],"columnNames":["Cód. Artículo",…],"columnKeys":["0","1",…],"index":0}]
+function hioTables(j){
+  const list = Array.isArray(j) ? j : j && typeof j === 'object' ? [j] : [];
+  const out = list.filter(t => t && typeof t === 'object' && Array.isArray(t.columnNames) && Array.isArray(t.data)).map((t, i) => {
+    const keys = Array.isArray(t.columnKeys) && t.columnKeys.length === t.columnNames.length ? t.columnKeys.map(String) : t.columnNames.map((_, k) => String(k));
+    const types = Array.isArray(t.columnTypes) ? t.columnTypes : [];
+    return {
+      index: t.index != null ? t.index : i,
+      cols: t.columnNames.map((n, k) => ({ key: keys[k], name: String(n), type: String(types[k] || '').toUpperCase() })),
+      rows: t.data.map(r => keys.map((k, pos) => { const v = r == null ? '' : Array.isArray(r) ? r[pos] : r[k]; return v == null ? '' : String(v); }))
+    };
+  });
+  return out.length ? out : null;
+}
+const NUM_TYPES = /^(FLOAT|DOUBLE|DECIMAL|NUMBER|NUMERIC|INT|INTEGER|LONG|CURRENCY|MONEY)$/;
+function tableFromCsv(text){
+  const c = parseCsv(text), head = c.rows[0] || [], body = c.rows.slice(1);
+  return [{ index: 0, cols: head.map((n, k) => {
+    const vals = body.map(r => (r[k] || '').trim()).filter(Boolean);
+    return { key: String(k), name: n, type: vals.length && vals.every(v => /^-?\d+([.,]\d+)?$/.test(v)) ? 'FLOAT' : 'STRING' };
+  }), rows: body.map(r => head.map((_, k) => r[k] != null ? r[k] : '')) }];
+}
+function csvNum(v, dec){
+  const s = String(v).trim();
+  if (dec === ',' && /^-?\d+\.\d+$/.test(s)) return s.replace('.', ',');
+  if (dec === '.' && /^-?\d+,\d+$/.test(s)) return s.replace(',', '.');
+  return v;
+}
+function csvField(v, sep){ const s = String(v == null ? '' : v); return /["\r\n]/.test(s) || s.includes(sep) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function buildCsv(table, cols, o){
+  const use = cols.filter(c => c.on), lines = [];
+  if (o.header) lines.push(use.map(c => csvField(c.out, o.sep)).join(o.sep));
+  const pos = Object.fromEntries(table.cols.map((c, i) => [c.key, i]));
+  for (const r of table.rows) lines.push(use.map(c => { const v = r[pos[c.key]]; return csvField(NUM_TYPES.test(c.type) ? csvNum(v, o.dec) : v, o.sep); }).join(o.sep));
+  return lines.join('\r\n') + '\r\n';
+}
+
+const CSV = { tables: null, ti: 0, cols: [], file: '' };
+const csvKey = t => 'hio-csv:' + t.cols.map(c => c.name).join('|');
+function csvOpts(){ return { sep: $('csvSep').value, dec: $('csvDec').value, header: $('csvHeader').checked, bom: $('csvBom').checked }; }
+function csvSave(){
+  const t = CSV.tables && CSV.tables[CSV.ti]; if (!t) return;
+  try { localStorage.setItem(csvKey(t), JSON.stringify({ use: document.querySelector('input[name=csvUse]:checked').value, cols: CSV.cols.map(c => ({ key: c.key, on: c.on, out: c.out })), ...csvOpts() })); } catch(e){}
+}
+function csvLoadTable(ti){
+  CSV.ti = ti; const t = CSV.tables[ti];
+  CSV.cols = t.cols.map(c => ({ key: c.key, name: c.name, type: c.type, on: true, out: c.name }));
+  let saved = null; try { saved = JSON.parse(localStorage.getItem(csvKey(t)) || 'null'); } catch(e){}
+  if (saved && Array.isArray(saved.cols)) {
+    const by = Object.fromEntries(CSV.cols.map(c => [c.key, c]));
+    const ordered = saved.cols.filter(s => by[s.key]).map(s => Object.assign(by[s.key], { on: !!s.on, out: s.out || by[s.key].name }));
+    CSV.cols = ordered.concat(CSV.cols.filter(c => !ordered.includes(c)));
+    const u = document.querySelector('input[name=csvUse][value="' + saved.use + '"]'); if (u) u.checked = true;
+    if (saved.sep != null) $('csvSep').value = saved.sep; if (saved.dec) $('csvDec').value = saved.dec;
+    $('csvHeader').checked = saved.header !== false; $('csvBom').checked = saved.bom !== false;
+  }
+  csvSyncUse(); csvRender();
+}
+function csvSyncUse(){
+  const imp = document.querySelector('input[name=csvUse]:checked').value === 'import';
+  $('csvUseHelp').classList.toggle('hidden', !imp);
+}
+const csvImp = () => document.querySelector("input[name=csvUse]:checked").value === "import";
+const csvCols = () => csvImp() ? CSV.cols : CSV.cols.map(c => Object.assign({}, c, { on: true }));
+function csvRender(){
+  const t = CSV.tables[CSV.ti], imp = document.querySelector('input[name=csvUse]:checked').value === 'import';
+  const pos = Object.fromEntries(t.cols.map((c, i) => [c.key, i])), first = t.rows[0] || [];
+  $('csvCols').innerHTML = '<thead><tr>' + (imp ? '<th></th>' : '') + '<th>Columna en HiOffice</th><th>Nombre en el CSV</th><th>Ejemplo</th><th></th></tr></thead><tbody>'
+    + CSV.cols.map((c, i) => '<tr class="' + (c.on || !imp ? '' : 'off') + '">'
+      + (imp ? '<td><input type="checkbox" data-on="' + i + '"' + (c.on ? ' checked' : '') + '></td>' : '')
+      + '<td>' + esc(c.name) + ' <span class="pill">' + esc(NUM_TYPES.test(c.type) ? 'número' : c.type ? 'texto' : '?') + '</span></td>'
+      + '<td><input type="text" data-out="' + i + '" value="' + esc(c.out) + '"></td>'
+      + '<td class="src">' + esc(first[pos[c.key]] != null ? first[pos[c.key]] : '') + '</td>'
+      + '<td style="white-space:nowrap"><button class="sec" data-up="' + i + '"' + (i ? '' : ' disabled') + ' title="Subir">↑</button> <button class="sec" data-dn="' + i + '"' + (i < CSV.cols.length - 1 ? '' : ' disabled') + ' title="Bajar">↓</button></td></tr>').join('') + '</tbody>';
+  $('csvCols').querySelectorAll('[data-on]').forEach(el => el.onchange = () => { CSV.cols[+el.dataset.on].on = el.checked; csvSave(); csvRender(); });
+  $('csvCols').querySelectorAll('[data-out]').forEach(el => el.oninput = () => { CSV.cols[+el.dataset.out].out = el.value; csvSave(); csvPreview(); });
+  const mv = (i, d) => { const a = CSV.cols; [a[i], a[i + d]] = [a[i + d], a[i]]; csvSave(); csvRender(); };
+  $('csvCols').querySelectorAll('[data-up]').forEach(el => el.onclick = () => mv(+el.dataset.up, -1));
+  $('csvCols').querySelectorAll('[data-dn]').forEach(el => el.onclick = () => mv(+el.dataset.dn, 1));
+  csvPreview();
+}
+function csvPreview(){
+  const t = CSV.tables[CSV.ti], o = csvOpts(), cols = csvCols(), use = cols.filter(c => c.on);
+  $('csvPrevBox').classList.toggle('hidden', !use.length);
+  if (!use.length) { $('csvMsg').innerHTML = '<div class="msg warn">Marca al menos una columna.</div>'; return; }
+  $('csvMsg').innerHTML = '';
+  const text = buildCsv({ cols: t.cols, rows: t.rows.slice(0, 100) }, cols, o);
+  const pr = parseCsv(text).rows, head = o.header ? pr[0] : use.map(c => c.out), body = o.header ? pr.slice(1) : pr;
+  $('csvPrev').innerHTML = '<div class="src" style="margin-bottom:6px">' + t.rows.length + ' fila(s) · ' + use.length + ' columna(s)' + (t.rows.length > 100 ? ' · se muestran 100' : '') + '</div>'
+    + '<div class="pv-wrap" style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px"><table class="pv"><thead><tr class="h">' + head.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>'
+    + body.map(r => '<tr>' + r.map(v => '<td class="' + (/^-?[\d.,]+$/.test(v.trim()) ? 'num' : '') + '">' + esc(v) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
+    + (t.rows.length ? '' : '<div class="msg warn">El archivo no trae filas de datos: el CSV sólo tendrá encabezados.</div>');
+  $('csvRaw').textContent = text.split('\r\n').slice(0, 15).join('\n') + (t.rows.length > 14 ? '\n…' : '');
+}
+function csvOpen(tables, fname, note){
+  CSV.tables = tables; CSV.file = fname || 'exportacion';
+  const total = tables.reduce((n, t) => n + t.rows.length, 0);
+  $('csvInfo').innerHTML = '<div class="msg ok"><b>' + esc(CSV.file) + '</b> · ' + (note ? esc(note) + ' · ' : '') + tables.length + ' tabla(s) · ' + total + ' fila(s)</div>';
+  $('csvName').value = CSV.file.replace(/\.(json|csv|txt)$/i, '') + '.csv';
+  $('csvTable').innerHTML = tables.map((t, i) => '<option value="' + i + '">Tabla ' + (i + 1) + ' (' + t.cols.length + ' columnas, ' + t.rows.length + ' filas)</option>').join('');
+  $('csvTablePick').classList.toggle('hidden', tables.length < 2);
+  ['csvOpts'].forEach(id => $(id).classList.remove('hidden'));
+  csvLoadTable(0);
+}
+setupDrop('dropCsv', 'fileCsv', (txt, fname) => {
+  const s = txt.replace(/^﻿/, '').trim();
+  let tables = null, note = '';
+  if (s.startsWith('[') || s.startsWith('{')) {
+    let j; try { j = JSON.parse(s); } catch(e){ $('csvInfo').innerHTML = '<div class="msg err">Parece JSON pero no es válido: ' + esc(e.message) + '</div>'; return; }
+    tables = hioTables(j);
+    if (!tables) { $('csvInfo').innerHTML = '<div class="msg err">Es un JSON, pero no tiene el formato de exportación de HiOffice (listas <code>data</code> y <code>columnNames</code>).</div>'; $('csvOpts').classList.add('hidden'); $('csvPrevBox').classList.add('hidden'); return; }
+    note = /\.csv$/i.test(fname) ? 'era JSON de HiOffice aunque se llame .csv' : 'JSON de HiOffice';
+  } else { tables = tableFromCsv(s); note = 'CSV'; }
+  csvOpen(tables, fname, note);
+});
+$('csvTable').onchange = () => csvLoadTable(+$('csvTable').value);
+document.querySelectorAll('input[name=csvUse]').forEach(r => r.onchange = () => { csvSyncUse(); csvSave(); csvRender(); });
+['csvSep', 'csvDec', 'csvHeader', 'csvBom'].forEach(id => $(id).onchange = () => { csvSave(); csvPreview(); });
+function csvFile(){
+  const t = CSV.tables[CSV.ti], o = csvOpts();
+  const cols = csvCols(); if (!cols.some(c => c.on)) throw new Error('Marca al menos una columna.');
+  const name = ($('csvName').value.trim() || 'exportacion.csv').replace(/[\\/:*?"<>|]/g, '_');
+  return new File([(o.bom ? '﻿' : '') + buildCsv(t, cols, o)], /\.csv$/i.test(name) ? name : name + '.csv', { type: 'text/csv' });
+}
+$('csvGo').onclick = () => {
+  try { const f = csvFile(); const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  catch(e){ $('csvMsg').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+};
+$('csvToImport').onclick = () => {
+  try {
+    const f = csvFile(), dt = new DataTransfer(); dt.items.add(f); $('fileIm').files = dt.files; $('fileIm').onchange();
+    const r = document.querySelector('input[name=imMode][value=file]'); r.checked = true; r.onchange && r.onchange();
+    showTab('bridge'); $('imFileBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch(e){ $('csvMsg').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+};
+
+// ================= Bridge: transporte =================
+// Con el ayudante local (http://127.0.0.1) las llamadas pasan por él; si no, van directas desde el navegador.
+const HELPER = { on: false, token: '' };
+(async () => {
+  if (!/^https?:$/.test(location.protocol)) { setMode(); return; }
+  try {
+    const r = await fetch('/__helper/ping', { cache: 'no-store' });
+    if (r.ok){ const j = await r.json(); if (j && j.ok){ HELPER.on = true; HELPER.token = j.token || ''; HELPER.info = j; } }
+  } catch(e){}
+  setMode();
+  if (HELPER.on) onHelperReady(HELPER.info || {});
+})();
+function setMode(){
+  $('brMode').innerHTML = HELPER.on ? '<span class="pill ok">Conectado mediante el ayudante local</span>'
+    : '<span class="pill">Llamadas directas desde el navegador</span> <span style="font-size:12px;color:var(--muted)">Si el navegador las bloquea, abre la herramienta con el ayudante (ver abajo).</span>';
+}
+const LOG = [];
+function logCall(method, url, status, ms, note){
+  const clean = url.replace(/([?&]password=)[^&]*/i, '$1••••');
+  LOG.unshift({ t: new Date().toLocaleTimeString(), method, url: clean, status, ms, note: note || '' });
+  $('brLog').innerHTML = LOG.slice(0, 60).map(l => '<tr><td>' + l.t + '</td><td>' + l.method + '</td><td class="u">' + esc(l.url) + '</td><td class="' + (l.status >= 200 && l.status < 300 ? 'g' : 'b') + '">' + (l.status || 'fallo') + '</td><td>' + l.ms + ' ms</td><td>' + esc(l.note) + '</td></tr>').join('');
+}
+function b64FromBytes(bytes){ let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+async function http(method, url, opt){
+  opt = opt || {};
+  const t0 = performance.now();
+  let status = 0, contentType = '', text = '';
+  try {
+    if (HELPER.on){
+      const payload = { method, url, headers: opt.headers || {}, body: opt.body != null ? opt.body : null };
+      if (opt.file) payload.file = { field: 'file', name: opt.file.name, type: opt.file.type || 'application/octet-stream', data: b64FromBytes(new Uint8Array(await opt.file.arrayBuffer())) };
+      const r = await fetch('/__helper/relay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Helper-Token': HELPER.token }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
+      status = j.status; contentType = j.contentType || ''; text = j.body || '';
+    } else {
+      const init = { method, headers: Object.assign({}, opt.headers || {}) };
+      if (opt.file){ const fd = new FormData(); fd.append('file', opt.file, opt.file.name); init.body = fd; delete init.headers['Content-Type']; }
+      else if (opt.body != null) init.body = opt.body;
+      const r = await fetch(url, init);
+      status = r.status; contentType = r.headers.get('content-type') || ''; text = await r.text();
+    }
+  } catch(e){
+    logCall(method, url, 0, Math.round(performance.now() - t0), e.message);
+    const blocked = !HELPER.on && /Failed to fetch|NetworkError|Load failed/i.test(e.message);
+    throw new Error(blocked ? 'El navegador no pudo llamar al servidor (seguramente lo bloquea por seguridad, CORS). Abre la herramienta con el ayudante local: ver “Cómo usar el ayudante” al final de esta pestaña.' : 'Error de conexión: ' + e.message);
+  }
+  logCall(method, url, status, Math.round(performance.now() - t0));
+  return { status, contentType, text, json(){ try { return JSON.parse(text); } catch(e){ return null; } } };
+}
+function httpError(r, what){
+  const j = r.json();
+  const msg = (j && (j.message || j.error || j.errorText)) || r.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+  return new Error(what + ': el servidor respondió ' + r.status + (msg ? ' — ' + msg : ''));
+}
+
+// ================= Bridge: sesión =================
+const SES = { token: '', base: '', address: '', customerId: '' };
+const authH = extra => Object.assign({ 'x-auth-token': SES.token }, extra || {});
+function needSession(){ if (!SES.token) throw new Error('Primero conéctate (sección Conexión).'); }
+function xmlVal(doc, tag){ const n = doc.getElementsByTagName(tag)[0]; return n ? n.textContent.trim() : ''; }
+$('brLogin').onclick = async () => {
+  const out = $('brSession');
+  const email = $('brEmail').value.trim(), pass = $('brPass').value;
+  if (!email || !pass){ out.innerHTML = '<div class="msg warn">Escribe email y contraseña de CloudLicense.</div>'; return; }
+  out.innerHTML = '<div class="msg">Conectando…</div>';
+  try {
+    const host = ($('brLoginHost').value.trim() || 'https://cloudlicense.icg.eu').replace(/\/+$/, '');
+    const url = host + '/services/cloud/getCustomerWithAuthToken?email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(pass) + '&isoLanguage=' + encodeURIComponent($('brLang').value);
+    const r = await http('GET', url);
+    if (r.status < 200 || r.status >= 300) throw httpError(r, 'Login');
+    const doc = new DOMParser().parseFromString(r.text, 'application/xml');
+    const token = xmlVal(doc, 'authToken'), address = xmlVal(doc, 'address');
+    if (!token || !address) throw new Error('Login sin token: revisa email y contraseña. Respuesta: ' + r.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200));
+    const port = xmlVal(doc, 'port'), secure = xmlVal(doc, 'secure') !== 'false';
+    const defPort = secure ? '443' : '80';
+    SES.token = token; SES.address = address; SES.customerId = xmlVal(doc, 'customerId');
+    SES.base = (secure ? 'https://' : 'http://') + address + (port && port !== defPort ? ':' + port : '');
+    $('brPass').value = '';
+    out.innerHTML = '<div class="msg ok">Conectado · servidor <b>' + esc(address) + '</b> · cliente ' + esc(SES.customerId) + '</div>';
+    $('brLogout').disabled = false;
+    onClientLogin(email);
+  } catch(e){ out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+};
+$('brLogout').onclick = async () => {
+  if (!SES.token) return;
+  try { await http('GET', SES.base + '/ErpCloud/session/logout', { headers: authH() }); } catch(e){}
+  SES.token = ''; $('brLogout').disabled = true;
+  $('brSession').innerHTML = '<div class="msg">Sesión cerrada.</div>';
+  SES.customerId = ''; $('brClient').classList.add('hidden'); savedRenderAll();
+};
+window.addEventListener('pagehide', () => { if (SES.token && !HELPER.on) { try { fetch(SES.base + '/ErpCloud/session/logout', { headers: authH(), keepalive: true }); } catch(e){} } });
+
+// ================= Bridge: exportación =================
+const pad = n => String(n).padStart(2, '0');
+const isoDay = dt => dt.getFullYear() + '-' + pad(dt.getMonth()+1) + '-' + pad(dt.getDate());
+(() => { const now = new Date(); $('exFrom').value = isoDay(new Date(now.getFullYear(), now.getMonth(), 1)); $('exTo').value = isoDay(new Date(now.getFullYear(), now.getMonth()+1, 0)); })();
+let EXF = [];
+const OPS = ['EQUAL','NOT_EQUAL','GREATER','GREATER_EQUAL','LESS','LESS_EQUAL','BETWEEN','CONTAINS','NOT_CONTAINS','STARTS_WITH','IS_NULL','IS_NOT_NULL'];
+function renderExFilters(){
+  if (!EXF.length){ $('exFilters').innerHTML = '<div style="font-size:13px;color:var(--muted)">Sin filtros.</div>'; return; }
+  $('exFilters').innerHTML = '<table class="cfg"><thead><tr><th>Atributo</th><th>Operador</th><th>Tipo</th><th>Valor</th><th>Valor 2</th><th></th></tr></thead><tbody>' + EXF.map((f,i) =>
+    '<tr><td><input data-i="' + i + '" data-k="attributeId" value="' + esc(f.attributeId) + '" style="min-width:80px"><div class="src">' + esc(attrName(+f.attributeId) || '') + '</div></td>'
+    + '<td><input data-i="' + i + '" data-k="arithmeticOperator" list="opsList" value="' + esc(f.arithmeticOperator) + '" style="min-width:120px"></td>'
+    + '<td><input data-i="' + i + '" data-k="type" value="' + esc(f.type) + '" style="min-width:80px"></td>'
+    + '<td><input data-i="' + i + '" data-k="value" value="' + esc(f.value) + '"></td>'
+    + '<td><input data-i="' + i + '" data-k="value2" value="' + esc(f.value2) + '"></td>'
+    + '<td><button class="sec" data-del="' + i + '">Quitar</button></td></tr>').join('') + '</tbody></table>';
+  $('exFilters').querySelectorAll('input').forEach(inp => inp.oninput = () => { EXF[+inp.dataset.i][inp.dataset.k] = inp.value; });
+  $('exFilters').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { EXF.splice(+b.dataset.del, 1); renderExFilters(); });
+}
+$('opsList').innerHTML = OPS.map(o => '<option value="' + o + '">').join('');
+renderExFilters();
+$('exAddFilter').onclick = () => { EXF.push({ attributeId: '', arithmeticOperator: 'EQUAL', type: 'String', value: '', value2: '' }); renderExFilters(); };
+$('exLoadFilters').onclick = async () => {
+  const out = $('exOut');
+  try {
+    needSession();
+    const id = $('exId').value.trim(); if (!id) throw new Error('Escribe el ID (GUID) de la exportación por dashboard.');
+    const r = await http('POST', SES.base + '/ErpCloud/exportation/getExportationDashboardFilters/' + encodeURIComponent(id), { headers: authH() });
+    if (r.status < 200 || r.status >= 300) throw httpError(r, 'Filtros');
+    const j = r.json(); if (!Array.isArray(j)) throw new Error('Respuesta inesperada al pedir los filtros.');
+    EXF = j.map(f => ({ attributeId: f.attributeId != null ? String(f.attributeId) : '', arithmeticOperator: f.arithmeticOperator || 'EQUAL', type: f.type || 'String', value: f.value || '', value2: f.value2 || '' }));
+    renderExFilters();
+    out.innerHTML = '<div class="msg ok">Cargados ' + EXF.length + ' filtro(s) del filtro global del dashboard. Completa los valores que quieras usar.</div>';
+  } catch(e){ out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+};
+document.querySelectorAll('input[name=exKind]').forEach(r => r.onchange = () => { $('exLoadFilters').disabled = document.querySelector('input[name=exKind]:checked').value !== 'dashboard'; });
+
+const DOC_TYPES = { 0: 'sin tipo', 1: 'CSV', 2: 'PDF', 3: 'TXT', 4: 'JSON', 5: 'XML' };
+function bytesFromB64(b64){ const s = atob(String(b64 || '').replace(/\s+/g, '')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+function decodeText(u){
+  let t = new TextDecoder('utf-8').decode(u);
+  if ((t.match(/�/g) || []).length > 2) { try { t = new TextDecoder('windows-1252').decode(u); } catch(e){} }
+  return t.replace(/^﻿/, '');
+}
+function parseCsv(text){
+  const first = text.split(/\r?\n/, 1)[0] || '';
+  const sep = [';', ',', '\t', '|'].map(s => [s, first.split(s).length]).sort((a,b) => b[1]-a[1])[0][0];
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (q){ if (ch === '"'){ if (text[i+1] === '"'){ cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === sep){ row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r'){ if (ch === '\r' && text[i+1] === '\n') i++; row.push(cell); cell = ''; if (row.length > 1 || row[0] !== '') rows.push(row); row = []; }
+    else cell += ch;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return { sep, rows };
+}
+function docPreview(doc){
+  const u = bytesFromB64(doc.data), type = doc.type, name = doc.name || 'exportacion';
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const kind = { 1: 'csv', 2: 'pdf', 3: 'txt', 4: 'json', 5: 'xml' }[type] || ext;
+  const res = { size: u.length, kind, html: '', verdict: 'ok', note: '' };
+  if (!u.length) { res.verdict = 'warn'; res.note = 'El archivo está vacío.'; return res; }
+  if (kind === 'pdf') { res.note = 'PDF de ' + u.length + ' bytes.'; return res; }
+  const text = decodeText(u);
+  if (kind === 'csv'){
+    const c = parseCsv(text), head = c.rows[0] || [], body = c.rows.slice(1);
+    const widths = c.rows.map(r => r.length), bad = widths.filter(w => w !== head.length).length;
+    res.note = body.length + ' fila(s) de datos · ' + head.length + ' columna(s) · separador “' + (c.sep === '\t' ? 'tab' : c.sep) + '”';
+    if (!body.length) { res.verdict = 'warn'; res.note += ' · no trae filas (¿filtros o fechas sin datos?)'; }
+    if (bad) { res.verdict = 'warn'; res.note += ' · ' + bad + ' fila(s) con distinto nº de columnas'; }
+    res.html = '<div class="pv-wrap" style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px"><table class="pv"><thead><tr class="h">' + head.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>'
+      + body.slice(0, 100).map(r => '<tr>' + r.map(v => '<td class="' + (/^-?[\d.,]+$/.test(v.trim()) ? 'num' : '') + '">' + esc(v) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
+      + (body.length > 100 ? '<div class="src">Mostrando 100 de ' + body.length + ' filas.</div>' : '');
+    return res;
+  }
+  let shown = text;
+  if (kind === 'json'){ try { const j = JSON.parse(text); shown = JSON.stringify(j, null, 2); const n = Array.isArray(j) ? j.length : null; res.note = n != null ? n + ' elemento(s) en la lista principal' : 'JSON válido'; if (n === 0) { res.verdict = 'warn'; res.note += ' · vacío'; } } catch(e){ res.verdict = 'err'; res.note = 'El archivo dice ser JSON pero no es válido: ' + e.message; } }
+  else if (kind === 'xml'){ const dx = new DOMParser().parseFromString(text, 'application/xml'); if (dx.getElementsByTagName('parsererror').length) { res.verdict = 'err'; res.note = 'El XML no es válido.'; } else res.note = 'XML válido · raíz <' + dx.documentElement.nodeName + '>'; }
+  else res.note = text.split(/\r?\n/).filter(Boolean).length + ' línea(s)';
+  res.html = '<pre class="code">' + esc(shown.length > 20000 ? shown.slice(0, 20000) + '\n…' : shown) + '</pre>';
+  return res;
+}
+// Detalle de lo que devolvió HiOffice (los textos largos, como los archivos en base64, se recortan)
+function respDetail(r, open){
+  if (!r) return '';
+  let body = r.text || '';
+  const j = r.json();
+  if (j != null) {
+    const cut = v => typeof v === 'string' && v.length > 300 ? v.slice(0, 120) + '… (' + v.length + ' caracteres en total)'
+      : Array.isArray(v) ? v.map(cut) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, cut(x)])) : v;
+    body = JSON.stringify(cut(j), null, 2);
+  } else if (body.length > 20000) body = body.slice(0, 20000) + '\n… (' + body.length + ' caracteres en total)';
+  return '<details class="resp" style="margin-top:10px"' + (open ? ' open' : '') + '><summary>Detalle de la respuesta de HiOffice</summary>'
+    + '<div class="src" style="margin:6px 0">HTTP ' + esc(String(r.status)) + (r.contentType ? ' · ' + esc(r.contentType) : '') + ' · ' + (r.text || '').length + ' caracteres</div>'
+    + '<pre class="code">' + esc(body || '(respuesta vacía)') + '</pre></details>';
+}
+// Acepta varias formas de respuesta: lista de documentos, {exportedDocs:[…]}, [{exportedDocs:[…]}], y nombres de campo alternativos
+function normalizeDocs(j){
+  if (j == null || typeof j !== 'object') return null;
+  let list = Array.isArray(j) ? j : j.exportedDocs || j.docs || j.documents || j.files;
+  if (!Array.isArray(list)) return null;
+  list = list.flatMap(x => x && Array.isArray(x.exportedDocs) ? x.exportedDocs : [x]);
+  return list.map(d => d && typeof d === 'object' ? {
+    name: d.name || d.fileName || d.filename || d.docName,
+    data: d.data != null ? d.data : d.content != null ? d.content : d.file != null ? d.file : d.base64,
+    type: d.type != null ? d.type : d.fileType != null ? d.fileType : d.docType,
+    known: ['name','fileName','filename','data','content','file','base64'].some(k => k in d)
+  } : { known: false });
+}
+$('exRun').onclick = async () => {
+  const out = $('exOut');
+  let r = null;
+  try {
+    needSession();
+    const raw = $('exId').value.trim(); if (!raw) throw new Error('Escribe el ID de la exportación.');
+    const kind = document.querySelector('input[name=exKind]:checked').value;
+    if (kind === 'table' && !/^\d+$/.test(raw)) throw new Error('Una exportación por tabla se identifica con un número.');
+    const from = $('exFrom').value, to = $('exTo').value;
+    if (!from || !to) throw new Error('Elige las fechas.');
+    if (from > to) throw new Error('La fecha “desde” es posterior a la fecha “hasta”.');
+    const filters = EXF.filter(f => String(f.attributeId).trim() !== '').map(f => ({ attributeId: /^\d+$/.test(f.attributeId) ? +f.attributeId : f.attributeId, arithmeticOperator: f.arithmeticOperator, type: f.type, value: f.value, value2: f.value2 }));
+    const body = { exportationId: kind === 'table' ? +raw : raw, startDate: from, endDate: to, filters };
+    out.innerHTML = '<div class="msg">Ejecutando exportación…</div>';
+    r = await http('POST', SES.base + '/ErpCloud/exportation/launch', { headers: authH({ 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
+    if (r.status < 200 || r.status >= 300) throw httpError(r, 'Exportación');
+    // Exportación por tabla: HiOffice devuelve las filas directamente (data / columnNames / columnTypes)
+    const tabs = hioTables(r.json());
+    if (tabs) {
+      const total = tabs.reduce((n, t) => n + t.rows.length, 0);
+      out.innerHTML = (total ? '<div class="msg ok"><b>La exportación funciona.</b> Devolvió ' + tabs.length + ' tabla(s) con ' + total + ' fila(s).</div>'
+          : '<div class="msg warn"><b>La exportación se ejecutó pero no trajo filas.</b> Puede que no haya datos en esas fechas o con esos filtros.</div>')
+        + tabs.map((t, i) => '<div class="doc"><div class="doc-h"><b>Tabla ' + (i + 1) + '</b> <span class="src">' + t.cols.length + ' columnas · ' + t.rows.length + ' filas</span><button class="sec" data-tocsv="' + i + '">Pasar a CSV</button></div>'
+          + '<div class="pv-wrap" style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin-top:8px"><table class="pv"><thead><tr class="h">' + t.cols.map(c => '<th>' + esc(c.name) + '</th>').join('') + '</tr></thead><tbody>'
+          + t.rows.slice(0, 100).map(row => '<tr>' + row.map((v, k) => '<td class="' + (NUM_TYPES.test(t.cols[k].type) ? 'num' : '') + '">' + esc(v) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
+          + (t.rows.length > 100 ? '<div class="src">Mostrando 100 de ' + t.rows.length + ' filas.</div>' : '') + '</div>').join('')
+        + respDetail(r, false);
+      out.querySelectorAll('[data-tocsv]').forEach(b => b.onclick = () => { csvOpen(tabs, 'Exportacion_' + raw + '_' + from + '_' + to + '.json', 'exportación ' + raw); if (tabs.length > 1) { $('csvTable').value = b.dataset.tocsv; csvLoadTable(+b.dataset.tocsv); } showTab('csv'); window.scrollTo(0, 0); });
+      return;
+    }
+    const docs = normalizeDocs(r.json());
+    if (!docs) throw new Error('La respuesta no trae la lista de archivos (“exportedDocs”). Revisa el detalle de abajo.');
+    if (!docs.length) { out.innerHTML = '<div class="msg warn"><b>Se ejecutó pero no generó archivos.</b> Puede que no haya datos en esas fechas o con esos filtros.</div>' + respDetail(r, true); return; }
+    if (docs.some(d => !d.known)) { out.innerHTML = '<div class="msg err"><b>HiOffice respondió, pero no reconozco el formato de los archivos.</b> Revisa el detalle de abajo (y pásaselo a Claude para adaptarlo).</div>' + respDetail(r, true); return; }
+    let html = '', worst = 'ok';
+    docs.forEach((doc, i) => {
+      const p = docPreview(doc);
+      if (p.verdict === 'err' || (p.verdict === 'warn' && worst === 'ok')) worst = p.verdict;
+      html += '<div class="doc"><div class="doc-h"><b>' + esc(doc.name || 'documento ' + (i+1)) + '</b> <span class="pill">' + esc(DOC_TYPES[doc.type] || 'tipo ' + doc.type) + '</span> <span class="src">' + p.size + ' bytes</span> <button class="sec" data-dl="' + i + '">Descargar</button></div>'
+        + '<div class="msg ' + (p.verdict === 'ok' ? 'ok' : p.verdict === 'warn' ? 'warn' : 'err') + '">' + esc(p.note) + '</div>' + p.html + '</div>';
+    });
+    const head = worst === 'ok' ? '<div class="msg ok"><b>La exportación funciona.</b> Generó ' + docs.length + ' archivo(s).</div>'
+      : worst === 'warn' ? '<div class="msg warn"><b>La exportación se ejecutó</b>, pero revisa los avisos.</div>' : '<div class="msg err"><b>La exportación se ejecutó pero el archivo tiene problemas.</b></div>';
+    out.innerHTML = head + html + respDetail(r, worst !== 'ok');
+    out.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => { const d = docs[+b.dataset.dl]; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([bytesFromB64(d.data)])); a.download = d.name || 'exportacion'; document.body.appendChild(a); a.click(); a.remove(); });
+  } catch(e){ out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>' + respDetail(r, true); }
+};
+
+// ================= Bridge: importación =================
+document.querySelectorAll('input[name=imMode]').forEach(r => r.onchange = syncImMode);
+function syncImMode(){
+  const m = document.querySelector('input[name=imMode]:checked').value;
+  $('imFileBox').classList.toggle('hidden', m !== 'file');
+  $('imBodyBox').classList.toggle('hidden', m !== 'body');
+}
+syncImMode();
+setupDrop('dropIm','fileIm',() => {});
+$('fileIm').onchange = () => { const f = $('fileIm').files[0]; $('imFileName').textContent = f ? f.name + ' (' + f.size + ' bytes)' : ''; imPreview(f); };
+// Vista previa de lo que se va a importar: tabla y texto tal cual se envía
+async function imPreview(f){
+  const box = $('imPrev'); box.innerHTML = '';
+  if (!f) return;
+  const u = new Uint8Array(await f.arrayBuffer());
+  if (u.subarray(0, 4096).some(b => b === 0)) { box.innerHTML = '<div class="msg">Archivo binario: no hay vista previa.</div>'; return; }
+  const text = decodeText(u), s = text.trim(), lines = text.split(/\r?\n/);
+  const rawHtml = '<details style="margin-top:10px" open><summary>Texto del archivo' + (lines.length > 200 ? ' (primeras 200 líneas de ' + lines.length + ')' : '') + '</summary><pre class="code" style="white-space:pre;word-break:normal">' + esc(lines.slice(0, 200).join('\n')) + '</pre></details>';
+  const tableHtml = (head, body, nums) => '<div class="pv-wrap" style="max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin-top:8px"><table class="pv"><thead><tr class="h"><th class="rn">#</th>' + head.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>'
+    + body.slice(0, 100).map((r, i) => '<tr><td class="rn">' + (i + 1) + '</td>' + r.map((v, k) => '<td class="' + ((nums ? nums[k] : /^-?[\d.,]+$/.test(String(v).trim())) ? 'num' : '') + '">' + esc(v) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>'
+    + (body.length > 100 ? '<div class="src">Mostrando 100 de ' + body.length + ' filas.</div>' : '');
+  let head = '', html = '';
+  if (s.startsWith('[') || s.startsWith('{')) {
+    let j; try { j = JSON.parse(s); } catch(e){ box.innerHTML = '<div class="msg err">Parece JSON pero no es válido: ' + esc(e.message) + '</div>' + rawHtml; return; }
+    const t = hioTables(j);
+    if (t) { head = '<div class="msg warn"><b>Este archivo es el JSON de una exportación de HiOffice</b>, no un CSV' + (/\.csv$/i.test(f.name) ? ' (aunque se llame .csv)' : '') + '. Si la importación espera CSV, conviértelo antes en la pestaña “Pasar a CSV”.</div>'; html = t.map(x => tableHtml(x.cols.map(c => c.name), x.rows, x.cols.map(c => NUM_TYPES.test(c.type)))).join(''); }
+    else { head = '<div class="msg">JSON válido' + (Array.isArray(j) ? ' · ' + j.length + ' elemento(s) en la lista principal' : '') + '.</div>'; }
+  } else if (s.startsWith('<')) {
+    const dx = new DOMParser().parseFromString(s, 'application/xml');
+    head = dx.getElementsByTagName('parsererror').length ? '<div class="msg err">El XML no es válido.</div>' : '<div class="msg">XML válido · raíz &lt;' + esc(dx.documentElement.nodeName) + '&gt;</div>';
+  } else if (s) {
+    const c = parseCsv(text), h = c.rows[0] || [], body = c.rows.slice(1);
+    const bad = body.map((r, i) => r.length !== h.length ? i + 2 : 0).filter(Boolean);
+    head = '<div class="msg ' + (bad.length || !body.length ? 'warn' : 'ok') + '">Se van a enviar <b>' + body.length + ' fila(s)</b> de datos · ' + h.length + ' columna(s) · separador “' + (c.sep === '\t' ? 'tabulador' : esc(c.sep)) + '”'
+      + (bad.length ? '<br>Filas con distinto número de columnas que el encabezado: ' + bad.slice(0, 15).join(', ') + (bad.length > 15 ? '…' : '') : '')
+      + (!body.length ? '<br>No hay filas de datos, sólo encabezados.' : '') + '</div>';
+    html = tableHtml(h, body);
+  } else head = '<div class="msg warn">El archivo está vacío.</div>';
+  box.innerHTML = '<h3 style="font-size:14px;margin:14px 0 0">Vista previa de lo que se va a cargar</h3>' + head + html + rawHtml;
+}
+$('dropIm').ondrop = e => { e.preventDefault(); $('dropIm').classList.remove('over'); const f = e.dataTransfer.files[0]; if (f){ const dt = new DataTransfer(); dt.items.add(f); $('fileIm').files = dt.files; $('fileIm').onchange(); } };
+$('imBody').oninput = () => { const t = $('imBody').value.trim(); if (t.startsWith('<')) $('imCt').value = 'application/xml'; else if (t.startsWith('{') || t.startsWith('[')) $('imCt').value = 'application/json'; };
+const STATUS = { 1: 'En ejecución', 2: 'Terminada con errores', 3: 'Terminada correctamente' };
+let IM_STOP = false;
+$('imStop').onclick = () => { IM_STOP = true; };
+$('imRun').onclick = async () => {
+  const out = $('imOut');
+  try {
+    needSession();
+    if (!$('imConfirm').checked) throw new Error('Marca la casilla de confirmación: la importación escribe datos reales en HiOffice.');
+    const id = $('imId').value.trim(); if (!id) throw new Error('Escribe el identificador de la importación.');
+    const mode = document.querySelector('input[name=imMode]:checked').value;
+    const base = SES.base + '/bridge-back/api/import/' + encodeURIComponent(id);
+    let r;
+    if (mode === 'none') r = await http('POST', base + '/launch', { headers: authH() });
+    else if (mode === 'file'){
+      const f = $('fileIm').files[0]; if (!f) throw new Error('Elige el archivo a importar.');
+      r = await http('POST', base + '/launchWithFile', { headers: authH(), file: f });
+    } else {
+      const body = $('imBody').value; if (!body.trim()) throw new Error('Pega el contenido a importar.');
+      const ct = $('imCt').value;
+      if (ct === 'application/json') { try { JSON.parse(body); } catch(e){ throw new Error('El cuerpo no es un JSON válido: ' + e.message); } }
+      if (ct === 'application/xml' && new DOMParser().parseFromString(body, 'application/xml').getElementsByTagName('parsererror').length) throw new Error('El cuerpo no es un XML válido.');
+      r = await http('POST', base + '/launchWithBody', { headers: authH({ 'Content-Type': ct }), body });
+    }
+    if (r.status < 200 || r.status >= 300) throw httpError(r, 'Importación');
+    const runs = r.json();
+    if (!Array.isArray(runs) || !runs.length) throw new Error('La importación no devolvió ejecuciones. Respuesta: ' + r.text.slice(0, 300));
+    IM_STOP = false; $('imStop').disabled = false;
+    const state = runs.map(x => ({ name: x.configurationName || '', uuid: x.importUUID, st: null, errors: null }));
+    const paint = () => {
+      out.innerHTML = state.map(s => {
+        const st = s.st, sid = st && st.statusId;
+        const cls = sid === 3 ? 'ok' : sid === 2 ? 'err' : '';
+        let h = '<div class="doc"><div class="doc-h"><b>' + esc(s.name || 'Importación') + '</b> <span class="src">' + esc(s.uuid || '') + '</span></div>';
+        h += '<div class="msg ' + cls + '">' + (st ? '<b>' + esc(st.status || STATUS[sid] || ('estado ' + sid)) + '</b>' : 'Esperando estado…') + (sid === 1 || !st ? ' <span class="spin"></span>' : '') + '</div>';
+        if (st) h += '<div class="tags"><span>Insertados: ' + (st.recordsInserted ?? '–') + '</span><span>Actualizados: ' + (st.recordsUpdated ?? '–') + '</span><span>Registros procesados: ' + (st.filesRecordsProcessed ?? '–') + '</span><span>Archivos: ' + (st.filesProcessed ?? '–') + ' / ' + (st.filesToProcess ?? '–') + '</span><span>Errores: ' + (st.errors ?? '–') + '</span>'
+          + (st.startTimestamp && st.endTimestamp ? '<span>Duración: ' + Math.max(0, Math.round((st.endTimestamp - st.startTimestamp)/1000)) + ' s</span>' : '') + '</div>';
+        if (s.errors && s.errors.length) h += '<ul class="checks">' + s.errors.map(e => '<li class="chk error"><span class="ic">✗</span><span class="ar">' + (e.errorTimestamp ? new Date(e.errorTimestamp).toLocaleString() : '') + '</span>' + esc((e.errorCode ? e.errorCode + ' · ' : '') + (e.errorText || '')) + '</li>').join('') + '</ul>';
+        if (sid === 3 && !(st.recordsInserted || st.recordsUpdated)) h += '<div class="msg warn"><b>HiOffice la aceptó pero no insertó ni actualizó ningún registro.</b> Suele pasar cuando las filas no encuentran a qué aplicarse:<ul>'
+          + '<li>el <b>artículo</b> no se encuentra con el valor enviado (¿se busca por código, referencia o código de barras?);</li>'
+          + '<li>el <b>almacén</b> se manda por nombre y la importación espera su código (o al revés);</li>'
+          + '<li>el <b>mapeo</b> de la importación en HiOffice no usa las columnas o el separador del archivo;</li>'
+          + '<li>los datos ya eran iguales a los que había (no hay nada que actualizar).</li></ul></div>';
+        if (s.raw) h += respDetail(s.raw, sid === 3 && !(st.recordsInserted || st.recordsUpdated)).replace('Detalle de la respuesta de HiOffice', 'Detalle del estado que devuelve HiOffice');
+        if (s.rawErr) h += respDetail(s.rawErr, false).replace('Detalle de la respuesta de HiOffice', 'Detalle de los errores que devuelve HiOffice');
+        return h + '</div>';
+      }).join('') + respDetail(r, false).replace('Detalle de la respuesta de HiOffice', 'Detalle del lanzamiento');
+    };
+    paint();
+    const started = Date.now(), maxMs = (+$('imMaxMin').value || 10) * 60000;
+    while (!IM_STOP){
+      let pending = 0;
+      for (const s of state){
+        if (s.st && s.st.statusId !== 1) continue;
+        const rs = await http('GET', SES.base + '/bridge-back/api/import/' + encodeURIComponent(s.uuid) + '/status', { headers: authH() });
+        s.raw = rs;
+        if (rs.status >= 200 && rs.status < 300) s.st = rs.json();
+        if (!s.st || s.st.statusId === 1) pending++;
+        else if (s.st.statusId === 2 || (s.st.errors|0) > 0){
+          const re = await http('GET', SES.base + '/bridge-back/api/import/' + encodeURIComponent(s.uuid) + '/errors', { headers: authH() });
+          s.rawErr = re; const ej = re.json(); s.errors = (ej && ej.errors) || [];
+        }
+      }
+      paint();
+      if (!pending) break;
+      if (Date.now() - started > maxMs){ out.insertAdjacentHTML('afterbegin', '<div class="msg warn">Se dejó de consultar tras ' + $('imMaxMin').value + ' min; la importación puede seguir en curso.</div>'); break; }
+      await new Promise(res => setTimeout(res, 2000));
+    }
+    $('imStop').disabled = true;
+    const allOk = state.every(s => s.st && s.st.statusId === 3 && !(s.errors && s.errors.length));
+    const anyErr = state.some(s => s.st && s.st.statusId === 2);
+    const noChange = allOk && state.every(s => !(s.st.recordsInserted || s.st.recordsUpdated));
+    out.insertAdjacentHTML('afterbegin', noChange ? '<div class="msg warn"><b>La importación terminó sin errores, pero no cambió ningún registro.</b> Detalle abajo.</div>'
+      : allOk ? '<div class="msg ok"><b>La importación funciona.</b> Terminó correctamente.</div>' : anyErr ? '<div class="msg err"><b>La importación terminó con errores.</b> Detalle abajo.</div>' : IM_STOP ? '<div class="msg warn">Consulta detenida.</div>' : '');
+  } catch(e){ out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; $('imStop').disabled = true; }
+};
+
+// ================= Pruebas guardadas por cliente (SQLite: datos\pruebas.db) =================
+async function dbCall(op, data){
+  const r = await fetch('/__helper/db', { method: 'POST', headers: { 'X-Helper-Token': HELPER.token, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ op }, data || {})) });
+  const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+}
+const SAVED = {
+  exportacion: { p: 'ex', items: [], cur: null, what: 'exportación',
+    collect: async () => ({ config: { kind: document.querySelector('input[name=exKind]:checked').value, id: $('exId').value.trim(), from: $('exFrom').value, to: $('exTo').value, filters: EXF.map(f => Object.assign({}, f)) } }),
+    apply: async t => {
+      const c = t.config || {}, k = document.querySelector('input[name=exKind][value="' + (c.kind || 'table') + '"]'); if (k) { k.checked = true; k.onchange && k.onchange(); }
+      $('exId').value = c.id || ''; if (c.from) $('exFrom').value = c.from; if (c.to) $('exTo').value = c.to;
+      EXF = Array.isArray(c.filters) ? c.filters.map(f => Object.assign({}, f)) : []; renderExFilters(); $('exOut').innerHTML = '';
+    } },
+  importacion: { p: 'im', items: [], cur: null, what: 'importación',
+    collect: async () => {
+      const mode = document.querySelector('input[name=imMode]:checked').value;
+      const config = { id: $('imId').value.trim(), maxMin: $('imMaxMin').value, mode, ct: $('imCt').value, body: mode === 'body' ? $('imBody').value : '' };
+      let archivo = null; const f = $('fileIm').files[0];
+      if (mode === 'file' && f) {
+        if (f.size > 20 * 1024 * 1024) throw new Error('El archivo pasa de 20 MB: no se guarda en la base.');
+        archivo = { name: f.name, type: f.type || 'application/octet-stream', data: b64FromBytes(new Uint8Array(await f.arrayBuffer())) };
+      }
+      return { config, archivo };
+    },
+    apply: async t => {
+      const c = t.config || {};
+      $('imId').value = c.id || ''; if (c.maxMin) $('imMaxMin').value = c.maxMin; if (c.ct) $('imCt').value = c.ct; $('imBody').value = c.body || '';
+      const m = document.querySelector('input[name=imMode][value="' + (c.mode || 'none') + '"]'); if (m) { m.checked = true; syncImMode(); }
+      const dt = new DataTransfer();
+      if (t.archivo) dt.items.add(new File([bytesFromB64(t.archivo.data)], t.archivo.name || 'archivo', { type: t.archivo.type || '' }));
+      $('fileIm').files = dt.files; $('fileIm').onchange();
+      $('imConfirm').checked = false; $('imOut').innerHTML = '';
+    } }
+};
+const fmtWhen = s => s ? s.slice(0, 16) : '';
+function savedRender(tipo){
+  const S = SAVED[tipo], p = S.p;
+  if (!HELPER.exe) { $(p + 'Saved').innerHTML = '<div class="src" style="font-size:12px;color:var(--muted)">Para guardar pruebas por cliente abre la herramienta con Herramientas_HiOffice.exe.</div>'; $(p + 'SaveBox').innerHTML = ''; return; }
+  if (!SES.customerId) { $(p + 'Saved').innerHTML = '<div class="src" style="font-size:12px;color:var(--muted)">Conéctate para ver y guardar las pruebas de ' + S.what + ' del cliente.</div>'; $(p + 'SaveBox').innerHTML = ''; return; }
+  const cur = S.items.find(x => x.id === S.cur);
+  $(p + 'Saved').innerHTML = '<div class="row" style="margin-top:0;align-items:flex-end"><label style="flex:1;min-width:220px;display:block;color:var(--muted);font-size:13px">Pruebas guardadas de este cliente (' + S.items.length + ')<select id="' + p + 'SavedSel"><option value="">— prueba nueva —</option>'
+    + S.items.map(x => '<option value="' + x.id + '"' + (x.id === S.cur ? ' selected' : '') + '>' + esc(x.nombre) + (x.ultimaEjecucion ? ' · última: ' + esc(fmtWhen(x.ultimaEjecucion)) : '') + '</option>').join('') + '</select></label>'
+    + (cur ? '<button class="sec" id="' + p + 'SavedDel">Borrar</button>' : '') + '</div>'
+    + (cur ? '<div class="src" style="font-size:12px;color:var(--muted);margin-top:4px">Guardada el ' + esc(fmtWhen(cur.actualizado)) + (cur.archivoNombre ? ' · con archivo ' + esc(cur.archivoNombre) + ' (' + cur.archivoBytes + ' bytes)' : '') + (cur.ultimoResultado ? ' · último resultado: ' + esc(cur.ultimoResultado) : '') + '</div>' : '');
+  $(p + 'SaveBox').innerHTML = '<div class="row" style="align-items:flex-end"><label style="flex:1;min-width:220px;display:block;color:var(--muted);font-size:13px">Nombre de la prueba<input type="text" id="' + p + 'SaveName" value="' + esc(cur ? cur.nombre : '') + '" placeholder="p. ej. Stock diario"></label><button class="sec" id="' + p + 'SaveBtn">Guardar en el cliente</button></div><div id="' + p + 'SaveMsg"></div>';
+  $(p + 'SavedSel').onchange = async () => {
+    const id = +$(p + 'SavedSel').value;
+    if (!id) { S.cur = null; savedRender(tipo); return; }
+    try { const t = await dbCall('get', { id }); S.cur = id; await S.apply(t); savedRender(tipo); }
+    catch(e){ $(p + 'SaveMsg').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+  };
+  if (cur) $(p + 'SavedDel').onclick = async () => {
+    if (!confirm('¿Borrar la prueba “' + cur.nombre + '” de este cliente?')) return;
+    try { await dbCall('delete', { id: cur.id }); S.cur = null; await savedLoad(tipo); } catch(e){ alert(e.message); }
+  };
+  $(p + 'SaveBtn').onclick = async () => {
+    const msg = $(p + 'SaveMsg');
+    try {
+      const nombre = $(p + 'SaveName').value.trim(); if (!nombre) throw new Error('Escribe un nombre para la prueba.');
+      const ex = S.items.find(x => x.nombre.toLowerCase() === nombre.toLowerCase());
+      if (ex && ex.id !== S.cur && !confirm('Ya hay una prueba “' + ex.nombre + '” en este cliente. ¿Reemplazarla?')) return;
+      const d = await S.collect();
+      const r = await dbCall('save', Object.assign({ customerId: SES.customerId, tipo, nombre }, d));
+      S.cur = r.id; await savedLoad(tipo);
+      $(p + 'SaveMsg').innerHTML = '<div class="msg ok">Guardada en el cliente' + (d.archivo ? ', con el archivo ' + esc(d.archivo.name) : '') + '.</div>';
+    } catch(e){ msg.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+  };
+}
+async function savedLoad(tipo){
+  const S = SAVED[tipo];
+  if (HELPER.exe && SES.customerId) { try { S.items = (await dbCall('list', { customerId: SES.customerId, tipo })).items || []; } catch(e){ S.items = []; } }
+  else S.items = [];
+  if (S.cur && !S.items.some(x => x.id === S.cur)) S.cur = null;
+  savedRender(tipo);
+}
+function savedRenderAll(){ SAVED.exportacion.cur = SAVED.importacion.cur = null; savedLoad('exportacion'); savedLoad('importacion'); }
+async function onClientLogin(email){
+  if (!HELPER.exe || !SES.customerId) { savedRenderAll(); return; }
+  try {
+    const r = await dbCall('saveClient', { customerId: SES.customerId, email, servidor: SES.address });
+    $('brClientName').value = r.nombre || ''; $('brClient').classList.remove('hidden');
+    $('brClientInfo').textContent = 'ID de cliente ' + SES.customerId + ' · ' + email + (r.nombre ? '' : ' · ponle un nombre para reconocerlo');
+  } catch(e){ $('brClientInfo').textContent = 'No se pudo abrir la base de datos: ' + e.message; $('brClient').classList.remove('hidden'); }
+  savedRenderAll();
+}
+$('brClientName').onchange = async () => { try { await dbCall('saveClient', { customerId: SES.customerId, nombre: $('brClientName').value.trim() }); $('brClientInfo').textContent = 'Nombre guardado · ID de cliente ' + SES.customerId; } catch(e){ $('brClientInfo').textContent = e.message; } };
+// Anota en la prueba cargada el resultado de la última ejecución
+async function savedResult(tipo, outId){
+  const S = SAVED[tipo]; if (!S.cur || !HELPER.exe) return;
+  const m = $(outId).querySelector('.msg'); if (!m) return;
+  const st = m.classList.contains('ok') ? 'correcta' : m.classList.contains('err') ? 'error' : 'con avisos';
+  try { await dbCall('result', { id: S.cur, resultado: st + ': ' + m.textContent.trim().slice(0, 180) }); await savedLoad(tipo); } catch(e){}
+}
+{ const ex = $('exRun').onclick, im = $('imRun').onclick;
+  $('exRun').onclick = async () => { await ex(); savedResult('exportacion', 'exOut'); };
+  $('imRun').onclick = async () => { await im(); savedResult('importacion', 'imOut'); }; }
+savedRenderAll();
+
+// ================= Modo programa (.exe): configuración, archivos, conexión automática =================
+async function storeGet(key){
+  try { const r = await fetch('/__helper/store?key=' + key, { headers: { 'X-Helper-Token': HELPER.token }, cache: 'no-store' }); const j = await r.json(); return j.value; } catch(e){ return null; }
+}
+const _storeTimers = {};
+function storePut(key, value){
+  if (!HELPER.exe) return;
+  clearTimeout(_storeTimers[key]);
+  _storeTimers[key] = setTimeout(() => { fetch('/__helper/store?key=' + key, { method: 'PUT', headers: { 'X-Helper-Token': HELPER.token, 'Content-Type': 'application/json' }, body: JSON.stringify(value) }).catch(() => {}); }, 300);
+}
+async function secretCall(method, value){
+  try { const r = await fetch('/__helper/secret', { method, headers: { 'X-Helper-Token': HELPER.token, 'Content-Type': 'application/json' }, body: method === 'PUT' ? JSON.stringify({ value: value || '' }) : undefined, cache: 'no-store' }); return await r.json(); } catch(e){ return { error: e.message }; }
+}
+let CFG = null;
+function openConfig(first){
+  const c = CFG || {};
+  $('cfEmail').value = c.email || ''; $('cfLang').value = c.lang || 'ES'; $('cfHost').value = c.loginHost || 'https://cloudlicense.icg.eu';
+  $('cfPass').value = ''; $('cfPass').placeholder = c.hasPassword ? '(guardada — escribe sólo para cambiarla)' : '';
+  $('cfRemember').checked = !!c.hasPassword; $('cfAuto').checked = c.autoConnect !== false && !!c.hasPassword;
+  $('cfRememberBox').classList.toggle('hidden', !HELPER.secrets);
+  $('cfForget').classList.toggle('hidden', !c.hasPassword);
+  $('cfIntro').innerHTML = (first ? '<b>Bienvenido.</b> ' : '') + 'Datos de tu cuenta de CloudLicense para conectarte al Bridge de HiOffice. Se guardan en la carpeta <b>datos</b>, junto al programa' + (HELPER.dataDir ? ' (<code>' + esc(HELPER.dataDir) + '</code>)' : '') + '.';
+  $('cfMsg').innerHTML = '';
+  $('cfgModal').classList.remove('hidden');
+  setTimeout(() => (c.email ? $('cfPass') : $('cfEmail')).focus(), 50);
+}
+$('cfCancel').onclick = () => { $('cfgModal').classList.add('hidden'); if (!CFG) { CFG = { skipped: true }; storePut('config', CFG); } };
+$('cfForget').onclick = async () => { await secretCall('PUT', ''); CFG = Object.assign({}, CFG, { hasPassword: false, autoConnect: false }); storePut('config', CFG); openConfig(false); $('cfMsg').innerHTML = '<div class="msg ok">Contraseña olvidada.</div>'; };
+$('cfSave').onclick = async () => {
+  const email = $('cfEmail').value.trim(), pass = $('cfPass').value, remember = $('cfRemember').checked && HELPER.secrets;
+  if (!email){ $('cfMsg').innerHTML = '<div class="msg warn">Escribe el email.</div>'; return; }
+  let hasPassword = !!(CFG && CFG.hasPassword);
+  if (remember && pass){ const r = await secretCall('PUT', pass); if (r.error){ $('cfMsg').innerHTML = '<div class="msg err">No se pudo guardar la contraseña: ' + esc(r.error) + '</div>'; return; } hasPassword = true; }
+  if (!remember && hasPassword){ await secretCall('PUT', ''); hasPassword = false; }
+  CFG = { email, lang: $('cfLang').value, loginHost: $('cfHost').value.trim() || 'https://cloudlicense.icg.eu', hasPassword, autoConnect: $('cfAuto').checked && hasPassword };
+  storePut('config', CFG);
+  applyConfig();
+  $('cfgModal').classList.add('hidden');
+  if (pass || CFG.autoConnect){ showTab('bridge'); await connectWithConfig(pass); }
+};
+function applyConfig(){
+  if (!CFG) return;
+  if (CFG.email) $('brEmail').value = CFG.email;
+  if (CFG.lang) $('brLang').value = CFG.lang;
+  if (CFG.loginHost) $('brLoginHost').value = CFG.loginHost;
+}
+async function connectWithConfig(typed){
+  let pass = typed;
+  if (!pass && CFG && CFG.hasPassword){ const r = await secretCall('GET'); pass = r && r.value; if (!pass){ $('brSession').innerHTML = '<div class="msg warn">' + esc((r && r.error) || 'No hay contraseña guardada.') + ' Ábrela en ⚙ Configuración.</div>'; return; } }
+  if (!pass) return;
+  $('brPass').value = pass; pass = '';
+  await $('brLogin').onclick();
+}
+async function onHelperReady(info){
+  HELPER.exe = !!info.exe; HELPER.secrets = !!info.secrets; HELPER.dataDir = info.dataDir || '';
+  if (!HELPER.exe) return;
+  savedRenderAll();
+  $('btnConfig').classList.remove('hidden'); $('btnQuit').classList.remove('hidden'); $('btnRestart').classList.remove('hidden');
+  $('helpPy').classList.add('hidden');
+  const showUpd = j => { const u = !!(j && j.update); $('updBanner').classList.toggle('hidden', !u); $('btnRestart').classList.toggle('sec', !u); };
+  showUpd(HELPER.info);
+  setInterval(() => fetch('/__helper/ping', { cache: 'no-store' }).then(r => r.json()).then(showUpd).catch(() => {}), 20000);
+  // Nombres de columnas guardados en archivo (y migración de los que había en el navegador)
+  const names = await storeGet('names');
+  if (names && typeof names === 'object') USER = Object.assign({}, USER, names); 
+  if (Object.keys(USER).length && JSON.stringify(USER) !== JSON.stringify(names || {})) storePut('names', USER);
+  const auto = await storeGet('auto'); if (auto && typeof auto === 'object') AUTO = Object.assign({}, auto, AUTO);
+  if (PV) renderPreview();
+  CFG = await storeGet('config');
+  if (!CFG) { openConfig(true); return; }
+  applyConfig();
+  if (CFG.autoConnect && CFG.hasPassword)connectWithConfig('');   // conecta en segundo plano; se queda en Inicio
+}
+$('btnConfig').onclick = () => openConfig(false);
+$('btnRestart').onclick = async () => {
+  const b = $('btnRestart'); b.disabled = true; b.textContent = 'Reiniciando…';
+  try {
+    const r = await fetch('/__helper/restart', { method: 'POST', headers: { 'X-Helper-Token': HELPER.token } });
+    const j = await r.json(); if (j.error) throw new Error(j.error);
+  } catch(e){ alert('No se pudo reiniciar: ' + e.message); b.disabled = false; b.textContent = '↻ Reiniciar y actualizar'; return; }
+  // Espera a que el programa nuevo responda (con otro token) y recarga la página.
+  const old = HELPER.token, t0 = Date.now();
+  const tick = async () => {
+    try { const j = await (await fetch('/__helper/ping', { cache: 'no-store' })).json(); if (j.ok && j.token !== old) { location.reload(); return; } } catch(e){}
+    if (Date.now() - t0 > 20000) { document.body.innerHTML = '<main><h1>Herramientas HiOffice</h1><p class="lead">El programa no volvió a abrirse. Ábrelo con doble clic en Herramientas_HiOffice.exe.</p></main>'; return; }
+    setTimeout(tick, 500);
+  };
+  setTimeout(tick, 800);
+};
+$('btnQuit').onclick = async () => {
+  if (SES.token) { try { await http('GET', SES.base + '/ErpCloud/session/logout', { headers: authH() }); } catch(e){} }
+  try { await fetch('/__helper/quit', { method: 'POST', headers: { 'X-Helper-Token': HELPER.token } }); } catch(e){}
+  document.body.innerHTML = '<main><h1>Herramientas HiOffice</h1><p class="lead">Programa cerrado. Ya puedes cerrar esta pestaña.</p></main>';
+};
+</script>
+</body>
+</html>

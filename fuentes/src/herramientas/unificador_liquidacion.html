@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unificador Hioffice</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2433; --muted:#667085; --line:#e3e6eb; --accent:#2563eb; --ok:#15803d; --new:#b45309; --err:#b91c1c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:1000px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 20px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:700px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .card h2 { font-size:15px; margin:0 0 4px; }
+  .card small { color:var(--muted); display:block; margin-bottom:10px; }
+  .fname { margin-top:8px; font-size:13px; color:var(--muted); word-break:break-all; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 18px; font-size:15px; cursor:pointer; }
+  button:disabled { background:#9aa4b2; cursor:not-allowed; }
+  .actions { margin:20px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .msg { padding:10px 14px; border-radius:8px; margin:12px 0; }
+  .msg.err { background:#fee2e2; color:var(--err); }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width:140px; }
+  .stat b { display:block; font-size:20px; }
+  .stat span { color:var(--muted); font-size:13px; }
+  .tablewrap { overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:10px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th, td { padding:6px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  th { background:#f0f2f5; position:sticky; top:0; }
+  td.num { font-family:Consolas, monospace; text-align:right; }
+  .tag { font-size:11px; padding:2px 6px; border-radius:4px; font-weight:600; }
+  .tag.upd { background:#dcfce7; color:var(--ok); }
+  .tag.new { background:#fef3c7; color:var(--new); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Unificador Hioffice</h1>
+  <p class="sub">Suma el “No retenido” de la nueva liquidación al BETRG del archivo Hioffice, por número de empleado. Los empleados que no existen se agregan al final.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>1. Archivo original Hioffice</h2>
+      <small>CSV separado por “;” con columnas LGART, PERNR, BETRG, PERNOM, BEGDA, ENDDA</small>
+      <input type="file" id="f1" accept=".csv,.txt,.xlsx">
+      <div class="fname" id="n1"></div>
+    </div>
+    <div class="card">
+      <h2>2. Agregar a nueva liquidación</h2>
+      <small>Excel con columnas “Carné” y “No retenido”</small>
+      <input type="file" id="f2" accept=".xlsx,.csv">
+      <div class="fname" id="n2"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="go" disabled>Unificar</button>
+    <button id="dl" disabled>Descargar CSV resultante</button>
+  </div>
+  <div id="out"></div>
+</main>
+
+<script>
+"use strict";
+let file1 = null, file2 = null, result = null;
+const $ = id => document.getElementById(id);
+
+$('f1').onchange = e => { file1 = e.target.files[0] || null; $('n1').textContent = file1 ? file1.name : ''; refresh(); };
+$('f2').onchange = e => { file2 = e.target.files[0] || null; $('n2').textContent = file2 ? file2.name : ''; refresh(); };
+function refresh(){ $('go').disabled = !(file1 && file2); $('dl').disabled = true; result = null; $('out').innerHTML = ''; }
+
+/* ---------- Lectura de XLSX sin librerías externas ---------- */
+async function inflateRaw(bytes){
+  const ds = new DecompressionStream('deflate-raw');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function unzip(buf){
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('El archivo no es un .xlsx válido.');
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const files = {}, dec = new TextDecoder();
+  for (let k = 0; k < count; k++) {
+    const method = dv.getUint16(p + 10, true);
+    const csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+    const loff = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nlen));
+    const lnl = dv.getUint16(loff + 26, true), lxl = dv.getUint16(loff + 28, true);
+    const data = u8.subarray(loff + 30 + lnl + lxl, loff + 30 + lnl + lxl + csize);
+    files[name] = { method, data };
+    p += 46 + nlen + xlen + clen;
+  }
+  return {
+    async text(name){
+      const f = files[name]; if (!f) return null;
+      const raw = f.method === 0 ? f.data : await inflateRaw(f.data);
+      return new TextDecoder('utf-8').decode(raw);
+    }
+  };
+}
+function colIndex(ref){ const m = /^([A-Z]+)/.exec(ref); let n = 0; for (const ch of m[1]) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; }
+async function readXlsx(buf){
+  const zip = await unzip(buf);
+  const parser = new DOMParser();
+  const shared = [];
+  const sst = await zip.text('xl/sharedStrings.xml');
+  if (sst) {
+    const doc = parser.parseFromString(sst, 'application/xml');
+    for (const si of doc.getElementsByTagName('si')) {
+      shared.push(Array.from(si.getElementsByTagName('t')).map(t => t.textContent).join(''));
+    }
+  }
+  // primera hoja según workbook.xml
+  let sheetPath = 'xl/worksheets/sheet1.xml';
+  const wb = await zip.text('xl/workbook.xml'), rels = await zip.text('xl/_rels/workbook.xml.rels');
+  if (wb && rels) {
+    const wdoc = parser.parseFromString(wb, 'application/xml');
+    const s = wdoc.getElementsByTagName('sheet')[0];
+    const rid = s && (s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id'));
+    const rdoc = parser.parseFromString(rels, 'application/xml');
+    for (const r of rdoc.getElementsByTagName('Relationship')) {
+      if (r.getAttribute('Id') === rid) {
+        let t = r.getAttribute('Target');
+        sheetPath = t.startsWith('/') ? t.slice(1) : 'xl/' + t.replace(/^\.\//, '');
+      }
+    }
+  }
+  const sx = await zip.text(sheetPath);
+  if (!sx) throw new Error('No se encontró la hoja de cálculo dentro del .xlsx.');
+  const sdoc = parser.parseFromString(sx, 'application/xml');
+  const rows = [];
+  for (const row of sdoc.getElementsByTagName('row')) {
+    const arr = [];
+    for (const c of row.getElementsByTagName('c')) {
+      const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0];
+      let val = '';
+      if (t === 's') val = shared[+v.textContent] ?? '';
+      else if (t === 'inlineStr') val = Array.from(c.getElementsByTagName('t')).map(x => x.textContent).join('');
+      else if (v) val = t === 'str' || t === 'b' || t === 'e' ? v.textContent : Number(v.textContent);
+      arr[colIndex(c.getAttribute('r'))] = val;
+    }
+    rows.push(Array.from(arr, x => x === undefined ? '' : x));
+  }
+  return rows;
+}
+
+/* ---------- Utilidades ---------- */
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+const normId = v => { const s = String(v).trim().replace(/\.0+$/, ''); return /^\d+$/.test(s) ? String(Number(s)) : s; };
+
+// Monto -> centavos (entero) para evitar errores de redondeo.
+function toCents(v){
+  if (typeof v === 'number') return Math.round(v * 100);
+  let s = String(v).trim().replace(/[^\d.,-]/g, '');
+  if (!s) return 0;
+  const lc = s.lastIndexOf(','), ld = s.lastIndexOf('.');
+  if (lc > ld) s = s.replace(/\./g, '').replace(',', '.');      // 4.971,55
+  else if (ld > lc && lc >= 0) s = s.replace(/,/g, '');            // 4,971.55
+  else if (lc >= 0 && ld < 0) s = s.replace(',', '.');             // 4971,55
+  const n = Number(s);
+  if (isNaN(n)) throw new Error('Monto no válido: ' + v);
+  return Math.round(n * 100);
+}
+// centavos -> 0000000006071.55 (13 dígitos enteros + "." + 2 decimales)
+function fmt(c){
+  const neg = c < 0; c = Math.abs(c);
+  const s = String(Math.floor(c / 100)).padStart(13, '0') + '.' + String(c % 100).padStart(2, '0');
+  return neg ? '-' + s : s;
+}
+const money = c => (c / 100).toLocaleString('es-UY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[ch]));
+
+async function readAsRows(file){
+  const buf = await file.arrayBuffer();
+  if (/\.xlsx$/i.test(file.name)) return { rows: await readXlsx(buf), eol: '\n', trailingNewline: false };
+  let text = new TextDecoder('utf-8').decode(buf);
+  if (text.includes('�')) text = new TextDecoder('windows-1252').decode(buf);
+  text = text.replace(/^﻿/, '');
+  const eol = text.includes('\r\n') ? '\r\n' : '\n';
+  const trailingNewline = /\r?\n$/.test(text);
+  const lines = text.split(/\r?\n/);
+  if (trailingNewline) lines.pop();
+  const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+  return { rows: lines.map(l => l.split(sep)), eol, trailingNewline };
+}
+
+/* ---------- Proceso principal ---------- */
+$('go').onclick = async () => {
+  $('out').innerHTML = '';
+  try {
+    const A = await readAsRows(file1);
+    const B = await readAsRows(file2);
+
+    // Archivo 1: encabezado
+    const head = A.rows[0].map(norm);
+    const iP = head.indexOf('pernr'), iB = head.indexOf('betrg'), iL = head.indexOf('lgart');
+    if (iP < 0 || iB < 0) throw new Error('El archivo Hioffice no tiene las columnas PERNR y BETRG en la primera fila.');
+    const ncols = A.rows[0].length;
+
+    // Separar filas de datos y la fila final de total (ej: "337;;;;;;")
+    const data = [], trailer = [];
+    for (let r = 1; r < A.rows.length; r++) {
+      const row = A.rows[r];
+      if (String(row[iP] ?? '').trim() === '') { if (row.some(x => String(x).trim() !== '')) trailer.push(row); continue; }
+      data.push(row);
+    }
+    if (!data.length) throw new Error('El archivo Hioffice no tiene filas de datos.');
+
+    // Archivo 2: buscar encabezado con "Carné" y "No retenido"
+    let hr = -1, iC = -1, iN = -1, iName = -1, iCc = -1;
+    for (let r = 0; r < Math.min(B.rows.length, 20); r++) {
+      const h = B.rows[r].map(norm);
+      const c = h.findIndex(x => x === 'carne' || x === 'carnet');
+      const n = h.findIndex(x => x === 'no retenido');
+      if (c >= 0 && n >= 0) { hr = r; iC = c; iN = n; iName = h.findIndex(x => x.startsWith('nombre y apellido')); iCc = h.indexOf('cc-nom'); break; }
+    }
+    if (hr < 0) throw new Error('No se encontraron las columnas “Carné” y “No retenido” en el segundo archivo.');
+
+    // Sumar montos por carné (por si un carné aparece más de una vez)
+    const add = new Map(), order = [];
+    for (let r = hr + 1; r < B.rows.length; r++) {
+      const row = B.rows[r];
+      const id = normId(row[iC] ?? '');
+      if (!id) continue;
+      const cents = toCents(row[iN] ?? 0);
+      if (!add.has(id)) { add.set(id, { cents: 0, name: iName >= 0 ? row[iName] : '', cc: iCc >= 0 ? row[iCc] : '' }); order.push(id); }
+      add.get(id).cents += cents;
+    }
+
+    // Actualizar existentes
+    const report = [], used = new Set();
+    for (const row of data) {
+      const id = normId(row[iP]);
+      if (add.has(id)) {
+        const before = toCents(row[iB]);
+        const plus = add.get(id).cents;
+        row[iB] = fmt(before + plus);
+        report.push({ type: 'upd', id, name: add.get(id).name, before, plus, after: before + plus });
+        used.add(id);
+      }
+    }
+
+    // Agregar los que no existen, copiando el formato de la última fila
+    const tpl = data[data.length - 1];
+    const hasIdx = norm(A.rows[0][0]) === '' && /^\d+$/.test(String(tpl[0]).trim());
+    let nextIdx = hasIdx ? Number(tpl[0]) : 0;
+    for (const id of order) {
+      if (used.has(id)) continue;
+      const it = add.get(id);
+      const row = tpl.slice();
+      if (hasIdx) row[0] = String(++nextIdx);
+      row[iP] = id;
+      row[iB] = fmt(it.cents);
+      if (iL >= 0 && String(it.cc).trim() !== '') row[iL] = String(it.cc).trim();
+      data.push(row);
+      report.push({ type: 'new', id, name: it.name, before: 0, plus: it.cents, after: it.cents });
+    }
+
+    // Fila final de total: actualizar con la nueva cantidad de filas
+    const newTrailer = trailer.map(t => {
+      const r = t.slice();
+      if (/^\d+$/.test(String(r[0]).trim())) r[0] = String(data.length);
+      return r;
+    });
+
+    const lines = [A.rows[0], ...data, ...newTrailer].map(r => { const x = r.slice(); while (x.length < ncols) x.push(''); return x.join(';'); });
+    const csv = lines.join(A.eol) + (A.trailingNewline ? A.eol : '');
+    const base = file1.name.replace(/\.[^.]+$/, '');
+    result = { csv, name: base + ' - unificado.csv' };
+    $('dl').disabled = false;
+    render(report, data.length);
+  } catch (err) {
+    $('out').innerHTML = '<div class="msg err">' + esc(err.message || err) + '</div>';
+  }
+};
+
+function render(report, total){
+  const upd = report.filter(r => r.type === 'upd'), nw = report.filter(r => r.type === 'new');
+  const sum = report.reduce((a, r) => a + r.plus, 0);
+  let h = '<div class="stats">'
+    + `<div class="stat"><b>${upd.length}</b><span>empleados actualizados</span></div>`
+    + `<div class="stat"><b>${nw.length}</b><span>empleados agregados al final</span></div>`
+    + `<div class="stat"><b>${total}</b><span>filas en el resultado</span></div>`
+    + `<div class="stat"><b>${money(sum)}</b><span>total sumado</span></div></div>`;
+  h += '<div class="tablewrap"><table><thead><tr><th></th><th>Carné / PERNR</th><th>Nombre</th><th>BETRG original</th><th>No retenido</th><th>BETRG nuevo</th></tr></thead><tbody>';
+  for (const r of report) {
+    h += `<tr><td><span class="tag ${r.type}">${r.type === 'upd' ? 'ACTUALIZADO' : 'NUEVO'}</span></td><td>${esc(r.id)}</td><td>${esc(r.name)}</td>`
+      + `<td class="num">${r.type === 'upd' ? fmt(r.before) : '—'}</td><td class="num">${money(r.plus)}</td><td class="num">${fmt(r.after)}</td></tr>`;
+  }
+  h += '</tbody></table></div>';
+  $('out').innerHTML = h;
+}
+
+$('dl').onclick = () => {
+  if (!result) return;
+  const blob = new Blob([result.csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = result.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+</script>
+</body>
+</html>

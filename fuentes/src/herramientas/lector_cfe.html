@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lector de CFE</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --ink:#1f2933; --muted:#5f6b7a; --line:#d9e0e8;
+  --head:#e4ebf3; --alt:#f7f9fc; --accent:#2563a8; --accent-ink:#ffffff; --neg:#b42318;
+  --sec:#d6e2f0; --hover:#eaf1fa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.4 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;display:flex;flex-direction:column}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+h1{font-size:17px;margin:0 12px 0 0;font-weight:600}
+button,.btn{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap}
+button:hover,.btn:hover{background:var(--hover)}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.primary:hover,.btn.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:default}
+input[type=date],input[type=text]{font:inherit;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:#fff;color:var(--ink)}
+label.lbl{color:var(--muted)}
+.spacer{flex:1}
+.note{color:var(--muted);font-size:12.5px}
+.dd{position:relative}
+.dd-panel{position:absolute;z-index:20;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:8px;min-width:320px;max-height:60vh;overflow:auto;display:none}
+.dd-panel.open{display:block}
+.dd-panel label{display:flex;gap:8px;align-items:center;padding:3px 4px;cursor:pointer;border-radius:4px}
+.dd-panel label:hover{background:var(--hover)}
+.dd-actions{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+nav{display:flex;flex-wrap:wrap;gap:2px;padding:6px 16px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+nav button{border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;background:transparent;color:var(--muted);padding:6px 12px}
+nav button.active{background:var(--panel);border-color:var(--line);color:var(--ink);font-weight:600;margin-bottom:-1px}
+main{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panel)}
+.wrap{flex:1;min-height:0;overflow:auto}
+table{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}
+th{position:sticky;top:0;background:var(--head);font-weight:600;cursor:pointer;user-select:none;z-index:2;border-right:1px solid #fff}
+th:hover{background:#d5e0ec}
+th .arrow{color:var(--accent);margin-left:4px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.neg{color:var(--neg)}
+tbody tr:nth-child(even){background:var(--alt)}
+tbody tr:hover{background:var(--hover)}
+tbody tr.g1{background:#fff7e6} tbody tr.g2{background:#ffffff}
+tbody tr.g1:hover,tbody tr.g2:hover{background:var(--hover)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:#fffbf2;font-size:13px}
+.toolbar input[type=number]{font:inherit;border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.toolbar label{display:flex;gap:6px;align-items:center}
+.conc{padding:16px 16px 40px}
+.conc h2{font-size:18px;margin:0 0 6px}
+.conc h3{font-size:15px;margin:26px 0 8px}
+.conc p{margin:4px 0}
+.conc table{min-width:0;margin-top:4px}
+.conc th{cursor:default;position:static}
+.conc .tblwrap{max-height:460px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.conc .tblwrap th{position:sticky;top:0}
+.conc input[type=text],.conc input[type=number],.conc select{font:inherit;border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:10px}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:#fff}
+.card .k{color:var(--muted);font-size:12.5px}
+.card .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.card.ok{border-color:#86c79a;background:#f0faf3} .card.ok .v{color:#15803d}
+.card.warn{border-color:#f0c27a;background:#fffaf0} .card.warn .v{color:#b45309}
+.avisos{background:#fff7e6;border:1px solid #f3d19c;border-radius:8px;padding:8px 14px;margin-top:10px;font-size:13px}
+.avisos li{margin:2px 0}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts label{display:inline-flex;gap:6px;align-items:center}
+.vf{color:#b45309;font-weight:600;font-size:12px}
+.badge{display:inline-block;background:#d97706;color:#fff;border-radius:10px;padding:0 7px;font-size:11.5px;font-weight:700;margin-left:2px}
+tr.sec td{background:var(--sec);font-weight:700;letter-spacing:.02em}
+tr.dest td{font-weight:700}
+.resumen td:first-child{min-width:320px}
+.resumen td{white-space:normal}
+footer.tot{border-top:1px solid var(--line);background:#ebf0f7;padding:7px 16px;font-weight:600;font-size:13px;overflow-x:auto;white-space:nowrap}
+.status{padding:5px 16px;font-size:12.5px;color:var(--muted);background:var(--bg);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center}
+progress{width:220px;height:12px}
+.empty{margin:auto;max-width:620px;text-align:center;padding:40px 20px;color:var(--muted)}
+.empty h2{color:var(--ink);font-size:20px;margin:0 0 8px}
+.drop{border:2px dashed #b8c6d6;border-radius:12px;padding:28px;margin-top:18px;background:#fafcfe}
+body.dragging .drop{border-color:var(--accent);background:#eef5fd}
+.more{padding:10px 16px}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;align-items:center;justify-content:center;z-index:50}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:10px;width:min(420px,calc(100vw - 32px));max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px}
+.modal .body{overflow:auto;padding:8px 16px}
+.modal .body label{display:flex;gap:8px;padding:4px 0;cursor:pointer}
+.modal .foot{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--line)}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1>Lector de CFE</h1>
+    <label class="btn primary" for="inDir">Elegir carpeta de XML…</label>
+    <input type="file" id="inDir" webkitdirectory directory multiple>
+    <label class="btn" for="inFiles">Elegir archivos…</label>
+    <input type="file" id="inFiles" multiple accept=".xml,text/xml">
+    <input type="file" id="inAn" accept=".csv,text/csv,.txt">
+    <span class="note" id="origen"></span>
+    <span class="spacer"></span>
+    <button id="btnCols" disabled>Elegir columnas…</button>
+    <button id="btnCsv" disabled>Exportar pestaña (CSV)</button>
+    <button id="btnXlsx" disabled>Exportar todo a Excel</button>
+  </div>
+  <div class="row" id="filtros" style="display:none">
+    <label class="lbl" for="fDesde">Desde</label><input type="date" id="fDesde">
+    <label class="lbl" for="fHasta">Hasta</label><input type="date" id="fHasta">
+    <button id="btnPeriodo">Todo el período</button>
+    <div class="dd">
+      <button id="btnTipos">Tipos de CFE: todos ▾</button>
+      <div class="dd-panel" id="ddTipos"></div>
+    </div>
+    <label class="lbl" for="fArt">Artículo contiene</label><input type="text" id="fArt" placeholder="ej. asado" style="width:170px">
+  </div>
+</header>
+<nav id="tabs" style="display:none"></nav>
+<main id="main">
+  <div class="empty" id="empty">
+    <h2>Lector de Comprobantes Fiscales Electrónicos</h2>
+    <p>Elija la carpeta que contiene los archivos XML de CFE con el botón <b>Elegir carpeta de XML…</b>, o arrástrela a este recuadro.</p>
+    <div class="drop">Suelte aquí la carpeta o los archivos XML</div>
+    <p class="note" style="margin-top:18px">Los archivos se procesan en esta computadora: no se envían a internet.<br>
+    Si el navegador pregunta si desea “subir” los archivos, acepte: es solo para que esta página pueda leerlos.</p>
+  </div>
+</main>
+<div class="status"><span id="status">Sin datos cargados.</span><progress id="prog" style="display:none" max="100" value="0"></progress></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="modalTitle">Columnas visibles</h3>
+    <div class="body" id="modalBody"></div>
+    <div class="foot">
+      <button id="mTodas">Todas</button><button id="mNinguna">Ninguna</button>
+      <span class="spacer"></span>
+      <button id="mCancel">Cancelar</button><button class="primary" id="mOk">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ======================================================= Catálogos
+const TIPOS={101:"e-Ticket",102:"Nota de Crédito de e-Ticket",103:"Nota de Débito de e-Ticket",
+111:"e-Factura",112:"Nota de Crédito de e-Factura",113:"Nota de Débito de e-Factura",
+121:"e-Factura de Exportación",122:"NC de e-Factura de Exportación",123:"ND de e-Factura de Exportación",124:"e-Remito de Exportación",
+131:"e-Ticket Venta por Cuenta Ajena",132:"NC de e-Ticket Cuenta Ajena",133:"ND de e-Ticket Cuenta Ajena",
+141:"e-Factura Venta por Cuenta Ajena",142:"NC de e-Factura Cuenta Ajena",143:"ND de e-Factura Cuenta Ajena",
+151:"e-Boleta de entrada",152:"NC de e-Boleta de entrada",153:"ND de e-Boleta de entrada",181:"e-Remito",182:"e-Resguardo"};
+const IND={1:"Exento de IVA",2:"Gravado tasa mínima",3:"Gravado tasa básica",4:"Gravado otra tasa",5:"Entrega gratuita",
+6:"No facturable",7:"No facturable negativo",8:"Ítem a rebajar (remito)",9:"Ítem a ajustar (resguardo)",10:"Exportación y asimiladas",
+11:"Impuesto percibido",12:"IVA en suspenso",13:"Vendedor no contribuyente",14:"Vendedor Monotributo",15:"Vendedor IMEBA",16:"IVA mínimo"};
+const DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const tipoNom=t=>TIPOS[t]||(t>=200&&TIPOS[t-100]?TIPOS[t-100]+" (contingencia)":"Tipo "+t);
+const indNom=i=>IND[i]?i+" - "+IND[i]:String(i);
+function signo(t){const b=t>=200?t-100:t;if(b===124||b===181||b===182)return 0;return b%10===2?-1:1;}
+const efecto=t=>{const s=signo(t);return s>0?"Suma":s<0?"Resta":"No suma";};
+const fmaPago=f=>f===1?"Contado":f===2?"Crédito":f===0?"Sin dato":String(f);
+const DOCTIPO={"2":"RUT","3":"CI","4":"Otros","5":"Pasaporte","6":"DNI","7":"NIFE"};
+
+// ======================================================= Formato
+const nf={};
+function fmtN(v,d){if(!nf[d])nf[d]=new Intl.NumberFormat("es-UY",{minimumFractionDigits:d,maximumFractionDigits:d});return nf[d].format(Math.abs(v)<1e-9?0:v);}
+const fmtM=v=>"$ "+fmtN(v,2);
+const r2=v=>Math.round((v+Number.EPSILON)*100)/100;
+const fmtD=s=>s?s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4):"";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sum=(a,f)=>{let s=0;for(const x of a)s+=f(x);return s;};
+function groupBy(a,f){const m=new Map();for(const x of a){const k=f(x);let g=m.get(k);if(!g){g=[];m.set(k,g);}g.push(x);}return m;}
+function moda(a,f,def){if(!a.length)return def;const m=groupBy(a,f);let best=def,n=-1;for(const[k,g]of m)if(g.length>n){n=g.length;best=k;}return best;}
+
+// ======================================================= Lectura de XML
+function ch(n,name){if(!n)return null;name=name.toLowerCase();for(const c of n.children)if(c.localName.toLowerCase()===name)return c;return null;}
+function chs(n,name){if(!n)return[];name=name.toLowerCase();return Array.from(n.children).filter(c=>c.localName.toLowerCase()===name);}
+function tx(n,name){const c=ch(n,name);return c?c.textContent.trim():"";}
+function num(s){const v=parseFloat(s);return isFinite(v)?v:0;}
+function nm(n,name){return num(tx(n,name));}
+
+function parseCfe(text,archivo){
+  const doc=new DOMParser().parseFromString(text,"application/xml");
+  if(doc.getElementsByTagName("parsererror").length)throw new Error("XML mal formado");
+  const res=[];
+  for(const enc of Array.from(doc.getElementsByTagNameNS("*","Encabezado"))){
+    const root=enc.parentElement, id=ch(enc,"IdDoc");
+    if(!id)continue;
+    const d={archivo,lineas:[]};
+    d.tipo=parseInt(tx(id,"TipoCFE"))||0; d.serie=tx(id,"Serie"); d.nro=parseInt(tx(id,"Nro"))||0;
+    d.fecha=tx(id,"FchEmis"); d.fma=parseInt(tx(id,"FmaPago"))||0; d.bruto=tx(id,"MntBruto")==="1";
+    const ts=tx(root,"TmstFirma"); const m=/T(\d\d):(\d\d):(\d\d)/.exec(ts);
+    d.hora=m?m[1]+":"+m[2]+":"+m[3]:""; d.h=m?parseInt(m[1]):-1;
+    if(!d.fecha&&ts)d.fecha=ts.slice(0,10);
+    // marca de tiempo en segundos (hora local tal como figura en la firma) para detectar duplicados
+    const mt=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)/.exec(ts);
+    d.ts=mt?Date.UTC(+mt[1],mt[2]-1,+mt[3],+mt[4],+mt[5],+mt[6])/1000:(d.fecha?Date.UTC(+d.fecha.slice(0,4),d.fecha.slice(5,7)-1,+d.fecha.slice(8,10))/1000:null);
+    const em=ch(enc,"Emisor"); d.ruc=tx(em,"RUCEmisor"); d.emisor=tx(em,"NomComercial")||tx(em,"RznSoc"); d.sucursal=tx(em,"EmiSucursal");
+    const rc=ch(enc,"Receptor"); const td=tx(rc,"TipoDocRecep");
+    d.recTipo=DOCTIPO[td]||td; d.recDoc=tx(rc,"DocRecep")||tx(rc,"DocRecepExt"); d.recNom=tx(rc,"RznSocRecep");
+    const t=ch(enc,"Totales");
+    d.moneda=tx(t,"TpoMoneda")||"UYU"; d.tc=nm(t,"TpoCambio")||1;
+    d.noGrv=nm(t,"MntNoGrv"); d.expo=nm(t,"MntExpoyAsim"); d.perc=nm(t,"MntImpuestoPerc"); d.susp=nm(t,"MntIVaenSusp");
+    d.netoMin=nm(t,"MntNetoIvaTasaMin"); d.netoBas=nm(t,"MntNetoIVATasaBasica"); d.netoOtra=nm(t,"MntNetoIVAOtra");
+    d.tasaMin=nm(t,"IVATasaMin")||10; d.tasaBas=nm(t,"IVATasaBasica")||22;
+    d.ivaMin=nm(t,"MntIVATasaMin"); d.ivaBas=nm(t,"MntIVATasaBasica"); d.ivaOtra=nm(t,"MntIVAOtra");
+    d.total=nm(t,"MntTotal"); d.retenido=nm(t,"MntTotRetenido"); d.noFact=nm(t,"MontoNF")||nm(t,"MntNoFact"); d.pagar=nm(t,"MntPagar");
+    d.descGlobal=0; d.recGlobal=0; d.drg=[];
+    for(const it of chs(ch(root,"Detalle"),"Item")){
+      const l={doc:d,nroLin:parseInt(tx(it,"NroLinDet"))||0,ind:parseInt(tx(it,"IndFact"))||0,
+        codigo:tx(ch(it,"CodItem"),"Cod"),nombre:tx(it,"NomItem"),cant:nm(it,"Cantidad"),unidad:tx(it,"UniMed"),
+        pu:nm(it,"PrecioUnitario"),descPct:nm(it,"DescuentoPct"),descMonto:nm(it,"DescuentoMonto"),monto:nm(it,"MontoItem"),descGlob:0};
+      if(l.ind===7)l.monto=-l.monto;
+      d.lineas.push(l);
+    }
+    // descuentos/recargos globales: se prorratean entre las líneas del mismo indicador
+    for(const dr of chs(ch(root,"DscRcgGlobal"),"DRG_Item")){
+      const v=nm(dr,"ValorDR"), esDesc=tx(dr,"TpoMovDR").toUpperCase()!=="R";
+      if(esDesc)d.descGlobal+=v;else d.recGlobal+=v;
+      const ind=parseInt(tx(dr,"IndFactDR"))||0;
+      d.drg.push({ind,v,desc:esDesc});
+      let af=d.lineas.filter(x=>x.ind===ind); if(!af.length)af=d.lineas;
+      const s=sum(af,x=>x.monto); if(!s)continue;
+      for(const x of af)x.descGlob+=(esDesc?v:-v)*x.monto/s;
+    }
+    for(const l of d.lineas){
+      l.final=l.monto-l.descGlob;
+      const tasa=l.ind===2?d.tasaMin:l.ind===3?d.tasaBas:-1;
+      if(tasa>=0){if(d.bruto){l.conIva=l.final;l.neto=l.final/(1+tasa/100);}else{l.neto=l.final;l.conIva=l.final*(1+tasa/100);}}
+      else{l.neto=l.final;l.conIva=l.final;}
+      l.iva=l.conIva-l.neto;
+    }
+    const refs=[];
+    for(const r of chs(ch(root,"Referencia"),"Referencia")){
+      const raz=tx(r,"RazonRef"),tr=tx(r,"TpoDocRef");
+      let s=tr?tr+"-"+tx(r,"Serie")+"-"+tx(r,"NroCFERef"):"";
+      if(raz)s=s?s+" ("+raz+")":raz;
+      if(s)refs.push(s);
+    }
+    d.referencia=refs.join(" | ");
+    d.cae=tx(ch(root,"CAEData"),"CAE_ID");
+    d.signo=signo(d.tipo);
+    d.fm=(d.moneda==="UYU"||!d.tc)?1:d.tc;      // conversión a UYU
+    d.f=d.signo*d.fm;                             // signo + conversión
+    d.totIva=d.ivaMin+d.ivaBas+d.ivaOtra;
+    d.clave=d.ruc+"|"+d.tipo+"|"+d.serie+"|"+d.nro;
+    res.push(d);
+  }
+  return res;
+}
+
+// ======================================================= Estado
+const S={docs:[],errores:[],archivos:0,duplicados:0,origen:"",tab:"resumen",views:{},hidden:{},sort:{},showAll:{},tipos:new Set(),fd:[],fl:[]};
+try{const h=JSON.parse(localStorage.getItem("lectorcfe.hidden")||"{}");for(const k in h)S.hidden[k]=new Set(h[k]);}catch(e){}
+S.dupCfg={min:5,cant:true};
+try{Object.assign(S.dupCfg,JSON.parse(localStorage.getItem("lectorcfe.dup")||"{}"));}catch(e){}
+function saveHidden(){try{const o={};for(const k in S.hidden)o[k]=[...S.hidden[k]];localStorage.setItem("lectorcfe.hidden",JSON.stringify(o));}catch(e){}}
+const $=id=>document.getElementById(id);
+
+// ======================================================= Carga de archivos
+async function cargar(files,origen){
+  files=files.filter(f=>/\.xml$/i.test(f.name));
+  if(!files.length){alert("No se encontraron archivos .xml en lo seleccionado.");return;}
+  files.sort((a,b)=>(a.webkitRelativePath||a.name).localeCompare(b.webkitRelativePath||b.name));
+  const prog=$("prog");prog.style.display="";prog.value=0;
+  const docs=[],errores=[],vistos=new Set();let dup=0;
+  const LOTE=150;
+  for(let i=0;i<files.length;i+=LOTE){
+    const lote=files.slice(i,i+LOTE);
+    const textos=await Promise.all(lote.map(f=>f.text().then(t=>[f,t],e=>[f,null,e])));
+    for(const[f,t,e]of textos){
+      if(t===null){errores.push([f.name,"No se pudo leer: "+(e&&e.message||e)]);continue;}
+      try{
+        const l=parseCfe(t,f.name);
+        if(!l.length)errores.push([f.name,"No contiene un CFE reconocible"]);
+        for(const d of l){if(vistos.has(d.clave))dup++;else{vistos.add(d.clave);docs.push(d);}}
+      }catch(ex){errores.push([f.name,ex.message]);}
+    }
+    prog.value=Math.round(Math.min(files.length,i+LOTE)*100/files.length);
+    $("status").textContent="Leyendo "+Math.min(files.length,i+LOTE)+" de "+files.length+" archivos…";
+    await new Promise(r=>setTimeout(r,0));
+  }
+  prog.style.display="none";
+  docs.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora.localeCompare(b.hora)||a.nro-b.nro);
+  Object.assign(S,{docs,errores,archivos:files.length,duplicados:dup,origen});
+  $("origen").textContent=origen;
+  // tipos
+  S.tipos=new Set(docs.map(d=>d.tipo));
+  const tipos=[...S.tipos].sort((a,b)=>a-b), dd=$("ddTipos");
+  dd.innerHTML=tipos.map(t=>`<label><input type="checkbox" value="${t}" checked> ${t} - ${esc(tipoNom(t))} <span class="note">(${docs.filter(d=>d.tipo===t).length})</span></label>`).join("")
+    +`<div class="dd-actions"><button data-a="all">Todos</button><button data-a="none">Ninguno</button></div>`;
+  periodoCompleto(false);
+  $("empty").style.display="none";$("filtros").style.display="";$("tabs").style.display="";
+  ["btnCols","btnCsv","btnXlsx"].forEach(id=>$(id).disabled=false);
+  reconstruir();
+}
+
+$("inDir").addEventListener("change",e=>{const f=[...e.target.files];if(f.length){const p=(f[0].webkitRelativePath||"").split("/")[0];cargar(f,"Carpeta: "+p+" ("+f.length+" archivos)");}e.target.value="";});
+$("inFiles").addEventListener("change",e=>{const f=[...e.target.files];if(f.length)cargar(f,f.length+" archivos seleccionados");e.target.value="";});
+
+// arrastrar y soltar carpetas
+async function leerEntry(entry,out){
+  if(entry.isFile){await new Promise(r=>entry.file(f=>{out.push(f);r();},()=>r()));}
+  else if(entry.isDirectory){
+    const rd=entry.createReader();
+    for(;;){const lote=await new Promise(r=>rd.readEntries(r,()=>r([])));if(!lote.length)break;for(const e of lote)await leerEntry(e,out);}
+  }
+}
+document.addEventListener("dragover",e=>{e.preventDefault();document.body.classList.add("dragging");});
+document.addEventListener("dragleave",e=>{if(!e.relatedTarget)document.body.classList.remove("dragging");});
+document.addEventListener("drop",async e=>{
+  e.preventDefault();document.body.classList.remove("dragging");
+  const items=[...(e.dataTransfer.items||[])].map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean);
+  const out=[];let nombre="";
+  if(items.length){for(const it of items){if(!nombre)nombre=it.name;await leerEntry(it,out);}}
+  else out.push(...e.dataTransfer.files);
+  if(out.length)cargar(out,(items.length===1&&items[0].isDirectory?"Carpeta: "+nombre+" ":"")+"("+out.length+" archivos)");
+});
+
+// ======================================================= Filtros
+let timer=null;const programar=()=>{clearTimeout(timer);timer=setTimeout(reconstruir,300);};
+function periodoCompleto(rebuild=true){
+  if(!S.docs.length)return;
+  $("fDesde").value=S.docs.reduce((m,d)=>d.fecha<m?d.fecha:m,"9999");
+  $("fHasta").value=S.docs.reduce((m,d)=>d.fecha>m?d.fecha:m,"0000");
+  if(rebuild)reconstruir();
+}
+$("btnPeriodo").onclick=()=>periodoCompleto();
+$("fDesde").onchange=$("fHasta").onchange=programar;
+$("fArt").oninput=programar;
+$("btnTipos").onclick=e=>{e.stopPropagation();$("ddTipos").classList.toggle("open");};
+document.addEventListener("click",e=>{if(!e.target.closest(".dd"))$("ddTipos").classList.remove("open");});
+$("ddTipos").addEventListener("click",e=>{
+  const a=e.target.dataset&&e.target.dataset.a;
+  if(a){$("ddTipos").querySelectorAll("input").forEach(i=>i.checked=a==="all");}
+  if(a||e.target.tagName==="INPUT"){
+    S.tipos=new Set([...$("ddTipos").querySelectorAll("input:checked")].map(i=>+i.value));
+    const n=S.tipos.size,tot=$("ddTipos").querySelectorAll("input").length;
+    $("btnTipos").textContent="Tipos de CFE: "+(n===tot?"todos":n+" de "+tot)+" ▾";
+    programar();
+  }
+});
+
+function reconstruir(){
+  const desde=$("fDesde").value||"0000",hasta=$("fHasta").value||"9999",art=$("fArt").value.trim().toLowerCase();
+  const okL=l=>!art||l.nombre.toLowerCase().includes(art)||l.codigo.toLowerCase().includes(art);
+  S.art=art;
+  S.fd=S.docs.filter(d=>d.fecha>=desde&&d.fecha<=hasta&&S.tipos.has(d.tipo)&&(!art||d.lineas.some(okL)));
+  S.fl=[];for(const d of S.fd)for(const l of d.lineas)if(okL(l))S.fl.push(l);
+  calcDup();
+  S.views={};S.showAll={};
+  renderTabs();render();
+  const neto=sum(S.fd,d=>d.total*d.f);
+  $("status").textContent=S.archivos+" archivos leídos · "+S.docs.length+" comprobantes · "+S.fd.length+" en el filtro actual · Total facturado neto: "+fmtM(neto)
+    +(S.errores.length?" · "+S.errores.length+" archivos con error (ver pestaña Errores)":"")
+    +(S.duplicados?" · "+S.duplicados+" duplicados ignorados":"");
+}
+
+// ======================================================= Posibles duplicados
+// Mismo tipo de CFE + mismo total + mismos artículos (y opcionalmente mismas cantidades/importes),
+// emitidos con una diferencia de tiempo menor o igual a la ventana configurada.
+function firmaDup(d,cant){
+  const its=d.lineas.map(l=>l.nombre.trim().toUpperCase()+(cant?"#"+l.cant.toFixed(3)+"#"+l.monto.toFixed(2):"")).sort();
+  return d.tipo+"|"+d.total.toFixed(2)+"|"+its.join("¦");
+}
+function calcDup(){
+  for(const d of S.docs){d.dupG=0;d.dupGap=null;}
+  const grupos=agruparDup(S.fd,S.dupCfg);
+  grupos.forEach((g,i)=>g.forEach((d,j)=>{d.dupG=i+1;d.dupGap=j?d.ts-g[j-1].ts:null;}));
+  S.dupGrupos=grupos;
+}
+function agruparDup(lista,cfg){
+  const ventana=Math.max(0,+cfg.min||0)*60,grupos=[];
+  const porFirma=groupBy(lista.filter(d=>d.ts!==null),d=>firmaDup(d,cfg.cant));
+  for(const[,l]of porFirma){
+    if(l.length<2)continue;
+    l.sort((a,b)=>a.ts-b.ts||a.nro-b.nro);
+    let g=[l[0]];
+    const cerrar=()=>{if(g.length>1)grupos.push(g);};
+    for(let i=1;i<l.length;i++){
+      if(l[i].ts-l[i-1].ts<=ventana)g.push(l[i]);else{cerrar();g=[l[i]];}
+    }
+    cerrar();
+  }
+  grupos.sort((a,b)=>a[0].ts-b[0].ts);
+  return grupos;
+}
+function fmtGap(s){if(s===null||s===undefined)return"";if(s<60)return s+" s";const m=Math.floor(s/60),r=s%60;return m+" min"+(r?" "+r+" s":"");}
+function vDup(){
+  const rows=[];
+  for(const g of S.dupGrupos){
+    const n=g[0].dupG;
+    g.forEach((d,j)=>rows.push({g:n,ord:j?"Repetido":"Original",fecha:d.fecha,hora:d.hora,gap:j?fmtGap(d.dupGap):"",tipo:d.tipo,tipoNom:tipoNom(d.tipo),serie:d.serie,nro:d.nro,
+      fma:fmaPago(d.fma),total:d.total*d.f,extra:j?d.total*d.f:0,lin:d.lineas.length,
+      arts:d.lineas.map(l=>l.nombre+" "+fmtN(l.cant,3)).join(", "),rec:d.recNom,arch:d.archivo,_cls:n%2?"g1":"g2"}));
+  }
+  return{cols:[C("g","Grupo","i",{s:false}),C("ord","Orden"),C("fecha","Fecha","d"),C("hora","Hora"),C("gap","Dif. con el anterior"),C("tipo","Tipo","i",{s:false}),
+    C("tipoNom","Tipo de CFE","s",{h:1}),C("serie","Serie"),C("nro","Número","i",{s:false}),C("fma","Forma de pago","s",{h:1}),C("total","Total","m"),
+    C("extra","Importe repetido","m"),C("lin","Líneas","i",{s:false}),C("arts","Artículos"),C("rec","Receptor","s",{h:1}),C("arch","Archivo","s",{h:1})],rows,dup:true};
+}
+
+// ======================================================= Vistas
+// tipos de columna: s=texto, d=fecha, i=entero, m=importe, q=cantidad(3 dec), p=porcentaje
+const C=(k,l,t="s",o={})=>({k,l,t,h:!!o.h,s:o.s!==undefined?o.s:(t==="m")});
+const VISTAS=[
+ {id:"resumen",nombre:"Resumen",fn:vResumen},
+ {id:"comp",nombre:"Comprobantes",fn:vComprobantes},
+ {id:"items",nombre:"Ítems (detalle)",fn:vItems},
+ {id:"art",nombre:"Por artículo",fn:vArticulos},
+ {id:"dia",nombre:"Por día",fn:vDias},
+ {id:"hora",nombre:"Por hora",fn:vHoras},
+ {id:"iva",nombre:"Por tipo de IVA",fn:vIva},
+ {id:"tipo",nombre:"Por tipo de CFE",fn:vTipos},
+ {id:"pago",nombre:"Por forma de pago",fn:vPago},
+ {id:"cli",nombre:"Por cliente",fn:vClientes},
+ {id:"dup",nombre:"Posibles duplicados",fn:vDup},
+ {id:"err",nombre:"Errores",fn:vErrores},
+];
+function vista(id){if(!S.views[id])S.views[id]=VISTAS.find(v=>v.id===id).fn();return S.views[id];}
+
+function vResumen(){
+  const fd=S.fd,fl=S.fl,rows=[];
+  const sec=t=>rows.push({c:t,v:"",x:"",_sec:1});
+  const fila=(c,v,x="",dest=0)=>rows.push({c,v,x,_dest:dest});
+  const ventas=fd.filter(d=>d.signo>0),ncs=fd.filter(d=>d.signo<0);
+  const tv=sum(ventas,d=>d.total*d.fm),tn=sum(ncs,d=>d.total*d.fm);
+  const tb=moda(fd,d=>d.tasaBas,22),tm=moda(fd,d=>d.tasaMin,10);
+  sec("DATOS GENERALES");
+  fila("Origen",S.origen);
+  fila("Archivos XML leídos",String(S.archivos),S.errores.length?S.errores.length+" con error":"");
+  fila("Comprobantes en el filtro",String(fd.length),"de "+S.docs.length+" cargados"+(S.duplicados?" ("+S.duplicados+" archivos repetidos con el mismo número ignorados)":""));
+  if(fd.length){
+    const fs=fd.map(d=>d.fecha);
+    fila("Período",fmtD(fs.reduce((a,b)=>a<b?a:b))+" al "+fmtD(fs.reduce((a,b)=>a>b?a:b)),new Set(fs).size+" días con movimiento");
+    fila("Emisor",[...new Set(fd.map(d=>d.emisor+" (RUT "+d.ruc+")"))].join(", "));
+    const mon=[...new Set(fd.map(d=>d.moneda))];
+    fila("Moneda",mon.join(", "),mon.some(m=>m!=="UYU")?"Importes en moneda extranjera convertidos a UYU con el tipo de cambio del comprobante":"");
+  }
+  if(S.art)fila("Filtro de artículo","“"+$("fArt").value.trim()+"”","Los totales incluyen solo comprobantes que contienen el artículo");
+  const dg_=S.dupGrupos,rep=dg_.reduce((s,g)=>s+g.length-1,0);
+  fila("Posibles duplicados",dg_.length?dg_.length+" grupos · "+rep+" comprobantes repetidos":"No se detectaron",
+    dg_.length?"Importe repetido: "+fmtM(dg_.reduce((s,g)=>s+sum(g.slice(1),d=>d.total*d.f),0))+" · ver pestaña Posibles duplicados":"Criterio: mismo tipo, total y artículos en ≤ "+S.dupCfg.min+" min",dg_.length?1:0);
+  sec("FACTURACIÓN");
+  fila("Ventas (e-Tickets, e-Facturas, notas de débito)",fmtM(tv),ventas.length+" comprobantes");
+  fila("Notas de crédito (devoluciones)",fmtM(-tn),ncs.length+" comprobantes");
+  fila("TOTAL FACTURADO NETO",fmtM(tv-tn),"Ventas menos notas de crédito",1);
+  fila("Ticket promedio",fmtM(ventas.length?tv/ventas.length:0),"Total de ventas / cantidad de comprobantes de venta");
+  const dg=sum(fd,d=>(d.descGlobal-d.recGlobal)*d.f),di=sum(fl,l=>l.descMonto*l.doc.f);
+  if(r2(dg))fila("Descuentos globales otorgados",fmtM(dg),fd.filter(d=>d.descGlobal).length+" comprobantes con descuento");
+  if(r2(di))fila("Descuentos por ítem (informativo)",fmtM(di));
+  const pagar=sum(fd,d=>d.pagar*d.f);if(r2(pagar)!==r2(tv-tn))fila("Total a pagar",fmtM(pagar));
+  sec("IMPUESTOS");
+  const g=k=>sum(fd,d=>d[k]*d.f);
+  const nb=g("netoBas"),ib=g("ivaBas"),nmn=g("netoMin"),im=g("ivaMin"),no=g("netoOtra"),io=g("ivaOtra");
+  fila(`Neto gravado tasa básica (${fmtN(tb,0)}%)`,fmtM(nb));
+  fila(`IVA tasa básica (${fmtN(tb,0)}%)`,fmtM(ib));
+  fila(`Neto gravado tasa mínima (${fmtN(tm,0)}%)`,fmtM(nmn));
+  fila(`IVA tasa mínima (${fmtN(tm,0)}%)`,fmtM(im));
+  if(r2(no)||r2(io)){fila("Neto gravado otra tasa",fmtM(no));fila("IVA otra tasa",fmtM(io));}
+  fila("TOTAL IVA",fmtM(ib+im+io),"",1);
+  fila("Monto con impuesto percibido",fmtM(g("perc")),"Ventas con IVA percibido (ej. carne)");
+  fila("No gravado / exento",fmtM(g("noGrv")));
+  if(r2(g("expo")))fila("Exportación y asimiladas",fmtM(g("expo")));
+  if(r2(g("susp")))fila("IVA en suspenso",fmtM(g("susp")));
+  if(r2(g("retenido")))fila("Retenciones / percepciones",fmtM(g("retenido")));
+  if(r2(g("noFact")))fila("Monto no facturable",fmtM(g("noFact")));
+  sec("POR TIPO DE CFE");
+  for(const[t,l]of[...groupBy(fd,d=>d.tipo)].sort((a,b)=>a[0]-b[0]))
+    fila(t+" - "+tipoNom(t),fmtM(sum(l,d=>d.total*d.fm)),l.length+" comprobantes · "+efecto(t));
+  sec("ARTÍCULOS");
+  const lv=fl.filter(l=>l.doc.signo);
+  fila("Artículos distintos",String(new Set(lv.map(l=>l.nombre.toUpperCase())).size));
+  fila("Líneas de detalle",String(lv.length));
+  fila("Cantidad total neta (unidades / kg)",fmtN(sum(lv,l=>l.cant*l.doc.signo),3));
+  const top=[...groupBy(lv,l=>l.nombre.trim().toUpperCase())].map(([n,l])=>[n,sum(l,x=>x.conIva*x.doc.f)]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  top.forEach((t,i)=>fila("Top "+(i+1),t[0],fmtM(t[1])+" (c/IVA)"));
+  sec("FORMA DE PAGO");
+  for(const[f,l]of[...groupBy(fd,d=>d.fma)].sort((a,b)=>a[0]-b[0]))fila(fmaPago(f),fmtM(sum(l,d=>d.total*d.f)),l.length+" comprobantes");
+  return{cols:[C("c","Concepto"),C("v","Valor"),C("x","Detalle")],rows,resumen:true};
+}
+
+function vComprobantes(){
+  const cols=[C("fecha","Fecha","d"),C("hora","Hora"),C("tipo","Tipo","i",{s:false}),C("tipoNom","Tipo de CFE"),C("serie","Serie"),C("nro","Número","i",{s:false}),
+    C("fma","Forma de pago"),C("moneda","Moneda","s",{h:1}),C("tc","T. cambio","q",{h:1,s:false}),C("recDoc","Doc. receptor","s",{h:1}),C("recNom","Receptor"),
+    C("netoBas","Neto tasa básica","m"),C("ivaBas","IVA tasa básica","m"),C("netoMin","Neto tasa mínima","m"),C("ivaMin","IVA tasa mínima","m"),
+    C("netoOtra","Neto otra tasa","m",{h:1}),C("ivaOtra","IVA otra tasa","m",{h:1}),C("totIva","Total IVA","m"),
+    C("perc","Imp. percibido","m"),C("noGrv","No gravado","m"),C("expo","Exportación","m",{h:1}),C("susp","IVA en suspenso","m",{h:1}),
+    C("desc","Desc. global","m"),C("total","Total","m"),C("noFact","No facturable","m",{h:1}),C("pagar","Total a pagar","m",{h:1}),
+    C("lin","Líneas","i",{s:true}),C("dup","Posible duplicado"),C("ref","Referencia"),C("cae","CAE","s",{h:1}),C("suc","Sucursal","s",{h:1}),C("ruc","RUT emisor","s",{h:1}),C("emi","Emisor","s",{h:1}),C("arch","Archivo","s",{h:1})];
+  const rows=S.fd.map(d=>{const f=d.f;return{fecha:d.fecha,hora:d.hora,tipo:d.tipo,tipoNom:tipoNom(d.tipo),serie:d.serie,nro:d.nro,fma:fmaPago(d.fma),moneda:d.moneda,tc:d.tc,
+    recDoc:(d.recTipo?d.recTipo+" ":"")+d.recDoc,recNom:d.recNom,netoBas:d.netoBas*f,ivaBas:d.ivaBas*f,netoMin:d.netoMin*f,ivaMin:d.ivaMin*f,netoOtra:d.netoOtra*f,ivaOtra:d.ivaOtra*f,
+    totIva:d.totIva*f,perc:d.perc*f,noGrv:d.noGrv*f,expo:d.expo*f,susp:d.susp*f,desc:(d.descGlobal-d.recGlobal)*f,total:d.total*f,noFact:d.noFact*f,pagar:d.pagar*f,
+    lin:d.lineas.length,dup:d.dupG?"Grupo "+d.dupG+(d.dupGap!==null?" (repetido)":" (original)"):"",ref:d.referencia,cae:d.cae,suc:d.sucursal,ruc:d.ruc,emi:d.emisor,arch:d.archivo};});
+  return{cols,rows};
+}
+
+function vItems(){
+  const cols=[C("fecha","Fecha","d"),C("hora","Hora"),C("tipo","Tipo","i",{s:false}),C("serie","Serie"),C("nro","Número","i",{s:false}),C("lin","Línea","i",{s:false}),
+    C("cod","Código","s",{h:1}),C("art","Artículo"),C("ind","Indicador IVA"),C("cant","Cantidad","q",{s:true}),C("uni","Unidad","s",{h:1}),
+    C("pu","Precio unitario","m",{s:false}),C("dpct","Desc. %","q",{h:1,s:false}),C("dit","Desc. ítem","m",{h:1}),
+    C("imp","Importe ítem","m"),C("dg","Desc. global prorrateado","m"),C("fin","Importe final","m"),C("neto","Neto s/IVA","m"),C("iva","IVA","m"),C("con","Total c/IVA","m"),
+    C("rec","Receptor"),C("arch","Archivo","s",{h:1})];
+  const rows=S.fl.map(l=>{const d=l.doc,f=d.f;return{fecha:d.fecha,hora:d.hora,tipo:d.tipo,serie:d.serie,nro:d.nro,lin:l.nroLin,cod:l.codigo,art:l.nombre,ind:indNom(l.ind),
+    cant:l.cant*d.signo,uni:l.unidad,pu:l.pu*d.fm,dpct:l.descPct,dit:l.descMonto*f,imp:l.monto*f,dg:r2(l.descGlob*f),fin:r2(l.final*f),neto:r2(l.neto*f),iva:r2(l.iva*f),con:r2(l.conIva*f),rec:d.recNom,arch:d.archivo};});
+  return{cols,rows};
+}
+
+function vArticulos(){
+  const cols=[C("art","Artículo"),C("cod","Código","s",{h:1}),C("ind","Indicador IVA"),C("cv","Cant. vendida","q",{s:true}),C("cd","Cant. devuelta (NC)","q",{s:true}),C("cn","Cant. neta","q",{s:true}),
+    C("iv","Importe vendido","m",{h:1}),C("id","Importe devuelto (NC)","m",{h:1}),C("neto","Neto s/IVA","m"),C("iva","IVA","m"),C("con","Total c/IVA","m"),C("dg","Desc. global prorrateado","m",{h:1}),
+    C("pp","Precio prom. c/IVA","m",{s:false}),C("nc","Comprobantes","i",{s:false}),C("pct","% del total","p",{s:true})];
+  const lv=S.fl.filter(l=>l.doc.signo),tot=sum(lv,l=>l.conIva*l.doc.f),rows=[];
+  for(const[,ls]of groupBy(lv,l=>l.nombre.trim().toUpperCase())){
+    const v=ls.filter(l=>l.doc.signo>0),dv=ls.filter(l=>l.doc.signo<0);
+    const cv=sum(v,l=>l.cant),cd=sum(dv,l=>l.cant),con=sum(ls,l=>l.conIva*l.doc.f),cn=cv-cd;
+    rows.push({art:ls[0].nombre,cod:[...new Set(ls.map(l=>l.codigo).filter(Boolean))].join(", "),ind:[...new Set(ls.map(l=>indNom(l.ind)))].join(", "),
+      cv,cd:-cd,cn,iv:r2(sum(v,l=>l.final*l.doc.fm)),id:r2(-sum(dv,l=>l.final*l.doc.fm)),neto:r2(sum(ls,l=>l.neto*l.doc.f)),iva:r2(sum(ls,l=>l.iva*l.doc.f)),con:r2(con),
+      dg:r2(sum(ls,l=>l.descGlob*l.doc.f)),pp:cn?r2(con/cn):0,nc:new Set(ls.map(l=>l.doc)).size,pct:tot?r2(con*100/tot):0});
+  }
+  rows.sort((a,b)=>b.con-a.con);
+  return{cols,rows};
+}
+
+function aggCols(k1,k2){return[k1,k2,C("n","Comprobantes","i",{s:true}),C("nc","Notas de crédito","i",{s:true}),
+  C("netoBas","Neto tasa básica","m"),C("ivaBas","IVA tasa básica","m"),C("netoMin","Neto tasa mínima","m"),C("ivaMin","IVA tasa mínima","m"),
+  C("netoOtra","Neto otra tasa","m",{h:1}),C("ivaOtra","IVA otra tasa","m",{h:1}),C("totIva","Total IVA","m"),C("perc","Imp. percibido","m"),C("noGrv","No gravado","m"),
+  C("desc","Desc. global","m"),C("total","Total facturado","m"),C("prom","Ticket promedio","m",{s:false})];}
+function aggRow(o,l){
+  const v=l.filter(d=>d.signo>0),g=k=>sum(l,d=>d[k]*d.f);
+  return Object.assign(o,{n:l.length,nc:l.filter(d=>d.signo<0).length,netoBas:g("netoBas"),ivaBas:g("ivaBas"),netoMin:g("netoMin"),ivaMin:g("ivaMin"),
+    netoOtra:g("netoOtra"),ivaOtra:g("ivaOtra"),totIva:g("totIva"),perc:g("perc"),noGrv:g("noGrv"),desc:sum(l,d=>(d.descGlobal-d.recGlobal)*d.f),total:g("total"),
+    prom:v.length?r2(sum(v,d=>d.total*d.fm)/v.length):0});
+}
+function vDias(){
+  const rows=[...groupBy(S.fd,d=>d.fecha)].sort((a,b)=>a[0].localeCompare(b[0]))
+    .map(([f,l])=>aggRow({fecha:f,dia:DIAS[new Date(f+"T12:00:00").getDay()]},l));
+  return{cols:aggCols(C("fecha","Fecha","d"),C("dia","Día")),rows};
+}
+function vHoras(){
+  const tot=sum(S.fd,d=>d.total*d.f);
+  const rows=[...groupBy(S.fd.filter(d=>d.h>=0),d=>d.h)].sort((a,b)=>a[0]-b[0]).map(([h,l])=>{
+    const hh=String(h).padStart(2,"0"),r=aggRow({franja:hh+":00 - "+hh+":59"},l);r.pct=tot?r2(r.total*100/tot):0;return r;});
+  const cols=[C("franja","Franja horaria"),C("n","Comprobantes","i",{s:true}),C("nc","Notas de crédito","i",{s:true}),C("totIva","Total IVA","m"),
+    C("perc","Imp. percibido","m"),C("total","Total facturado","m"),C("prom","Ticket promedio","m",{s:false}),C("pct","% del total","p",{s:true})];
+  return{cols,rows};
+}
+function vIva(){
+  const fd=S.fd,rows=[];
+  const tb=fmtN(moda(fd,d=>d.tasaBas,22),0)+"%",tm=fmtN(moda(fd,d=>d.tasaMin,10),0)+"%";
+  const add=(c,tasa,kn,ki,siempre)=>{
+    const n=fd.filter(d=>d[kn]||(ki&&d[ki])).length,a=sum(fd,d=>d[kn]*d.f),b=ki?sum(fd,d=>d[ki]*d.f):0;
+    if(n||siempre)rows.push({c,tasa,n,neto:a,iva:b,tot:a+b});
+  };
+  add("Gravado tasa básica",tb,"netoBas","ivaBas",1);add("Gravado tasa mínima",tm,"netoMin","ivaMin",1);add("Gravado otra tasa","","netoOtra","ivaOtra");
+  add("Impuesto percibido","","perc");add("No gravado / exento","0%","noGrv");add("Exportación y asimiladas","0%","expo");add("IVA en suspenso","","susp");
+  return{cols:[C("c","Concepto"),C("tasa","Tasa"),C("n","Comprobantes","i",{s:false}),C("neto","Neto","m"),C("iva","IVA","m"),C("tot","Total","m")],rows};
+}
+function vTipos(){
+  const rows=[...groupBy(S.fd,d=>d.tipo)].sort((a,b)=>a[0]-b[0]).map(([t,l])=>{
+    const ns=l.map(d=>d.nro);
+    return{t,nom:tipoNom(t),ef:efecto(t),n:l.length,desde:l[0].serie+" "+Math.min(...ns),hasta:l[0].serie+" "+Math.max(...ns),
+      neto:sum(l,d=>(d.netoBas+d.netoMin+d.netoOtra)*d.fm),iva:sum(l,d=>d.totIva*d.fm),perc:sum(l,d=>d.perc*d.fm),noGrv:sum(l,d=>d.noGrv*d.fm),
+      tot:sum(l,d=>d.total*d.fm),tots:sum(l,d=>d.total*d.f)};});
+  return{cols:[C("t","Código","i",{s:false}),C("nom","Tipo de CFE"),C("ef","Efecto en total"),C("n","Cantidad","i",{s:true}),C("desde","Desde Nº"),C("hasta","Hasta Nº"),
+    C("neto","Neto gravado","m",{s:false}),C("iva","IVA","m",{s:false}),C("perc","Imp. percibido","m",{s:false}),C("noGrv","No gravado","m",{s:false}),C("tot","Importe total","m",{s:false}),C("tots","Total con signo","m")],rows};
+}
+function vPago(){
+  const tot=sum(S.fd,d=>d.total*d.f);
+  const rows=[...groupBy(S.fd,d=>d.fma)].sort((a,b)=>a[0]-b[0]).map(([f,l])=>{const t=sum(l,d=>d.total*d.f);
+    return{f:fmaPago(f),n:l.length,iva:sum(l,d=>d.totIva*d.f),tot:t,pct:tot?r2(t*100/tot):0};});
+  return{cols:[C("f","Forma de pago"),C("n","Comprobantes","i",{s:true}),C("iva","Total IVA","m"),C("tot","Total facturado","m"),C("pct","% del total","p",{s:true})],rows};
+}
+function vClientes(){
+  const rows=[...groupBy(S.fd,d=>(!d.recNom&&!d.recDoc)?"":(d.recDoc||d.recNom.toUpperCase()))].map(([k,l])=>{
+    const fs=l.map(d=>d.fecha);
+    return{cli:k?(l.find(d=>d.recNom)||{}).recNom||"":"(Consumidor final / sin identificar)",
+      doc:k?[...new Set(l.filter(d=>d.recDoc).map(d=>d.recTipo+" "+d.recDoc))].join(", "):"",
+      n:l.length,iva:sum(l,d=>d.totIva*d.f),perc:sum(l,d=>d.perc*d.f),tot:sum(l,d=>d.total*d.f),
+      pri:fs.reduce((a,b)=>a<b?a:b),ult:fs.reduce((a,b)=>a>b?a:b)};}).sort((a,b)=>b.tot-a.tot);
+  return{cols:[C("cli","Cliente"),C("doc","Documento"),C("n","Comprobantes","i",{s:true}),C("iva","Total IVA","m"),C("perc","Imp. percibido","m"),C("tot","Total facturado","m"),
+    C("pri","Primera compra","d"),C("ult","Última compra","d")],rows};
+}
+function vErrores(){return{cols:[C("a","Archivo"),C("e","Error")],rows:S.errores.map(e=>({a:e[0],e:e[1]}))};}
+
+// ======================================================= Render
+function hiddenSet(id){
+  if(!S.hidden[id]){const v=vista(id);S.hidden[id]=new Set(v.cols.filter(c=>c.h).map(c=>c.k));}
+  return S.hidden[id];
+}
+function visibles(id){const v=vista(id),h=hiddenSet(id);return v.cols.filter(c=>!h.has(c.k));}
+function fmtCell(c,v){
+  if(v===null||v===undefined||v==="")return"";
+  switch(c.t){case"m":return fmtN(v,2);case"q":return fmtN(v,3);case"i":return c.k==="nro"||c.k==="tipo"||c.k==="t"?String(v):fmtN(v,0);
+    case"p":return fmtN(v,2)+" %";case"d":return fmtD(v);default:return String(v);}
+}
+const isNum=c=>c.t==="m"||c.t==="q"||c.t==="i"||c.t==="p";
+
+function filasOrdenadas(id){
+  const v=vista(id),s=S.sort[id];
+  if(!s||v.resumen)return v.rows;
+  const c=v.cols.find(x=>x.k===s.k);if(!c)return v.rows;
+  const dir=s.dir,num=isNum(c);
+  return v.rows.slice().sort((a,b)=>{const x=a[s.k],y=b[s.k];return dir*(num?(x||0)-(y||0):String(x??"").localeCompare(String(y??""),"es",{numeric:true}));});
+}
+
+function renderTabs(){
+  $("tabs").innerHTML=VISTAS.map(v=>`<button data-t="${v.id}" class="${S.tab===v.id?"active":""}">${esc(v.nombre)}${v.id==="err"&&S.errores.length?" ("+S.errores.length+")":""}${v.id==="dup"&&S.dupGrupos&&S.dupGrupos.length?` <span class="badge">${S.dupGrupos.length}</span>`:""}</button>`).join("")
+    +`<button data-t="conc" class="${S.tab==="conc"?"active":""}">Conciliación con sistema</button>`;
+}
+$("tabs").addEventListener("click",e=>{const t=e.target.closest("button");if(t){S.tab=t.dataset.t;renderTabs();render();}});
+
+const LIMITE=2000;
+function render(){
+  if(S.tab==="conc"){renderConc();return;}
+  const main=$("main"),id=S.tab,v=vista(id);
+  if(v.resumen){
+    main.innerHTML=`<div class="wrap"><table class="resumen"><thead><tr><th>Concepto</th><th>Valor</th><th>Detalle</th></tr></thead><tbody>`+
+      v.rows.map(r=>`<tr class="${r._sec?"sec":r._dest?"dest":""}"><td>${esc(r.c)}</td><td>${esc(r.v)}</td><td>${esc(r.x)}</td></tr>`).join("")+
+      `</tbody></table></div><footer class="tot">Resumen del período y filtros seleccionados. En las demás pestañas: clic en un encabezado para ordenar, clic derecho para elegir columnas.</footer>`;
+    return;
+  }
+  const cols=visibles(id),rows=filasOrdenadas(id),s=S.sort[id];
+  const lim=S.showAll[id]?rows.length:Math.min(rows.length,LIMITE);
+  let h="";
+  if(v.dup){
+    const rep=S.dupGrupos.reduce((s,g)=>s+g.length-1,0);
+    h+=`<div class="toolbar"><b>Criterio:</b> mismo tipo de CFE, mismo total y mismos artículos, emitidos con
+      <input type="number" id="dupMin" min="0" max="1440" step="1" value="${S.dupCfg.min}" style="width:64px"> minutos o menos de diferencia
+      <label><input type="checkbox" id="dupCant" ${S.dupCfg.cant?"checked":""}> exigir también mismas cantidades e importes por artículo</label>
+      <span class="spacer"></span><span>${S.dupGrupos.length} grupos · ${rep} comprobantes repetidos</span></div>`;
+  }
+  h+=`<div class="wrap"><table><thead><tr>`+cols.map(c=>`<th data-k="${c.k}" class="${isNum(c)?"n":""}">${esc(c.l)}${s&&s.k===c.k?`<span class="arrow">${s.dir>0?"▲":"▼"}</span>`:""}</th>`).join("")+`</tr></thead><tbody>`;
+  const parts=[];
+  for(let i=0;i<lim;i++){const r=rows[i];
+    parts.push(`<tr${r._cls?` class="${r._cls}"`:""}>`+cols.map(c=>{const val=r[c.k];const cls=isNum(c)?(typeof val==="number"&&val<-0.004?"n neg":"n"):"";return`<td class="${cls}">${esc(fmtCell(c,val))}</td>`;}).join("")+"</tr>");}
+  h+=parts.join("")+`</tbody></table>`;
+  if(!rows.length)h+=`<div class="empty">${v.dup?"No se detectaron posibles duplicados con este criterio.":"No hay datos con los filtros actuales."}</div>`;
+  if(lim<rows.length)h+=`<div class="more">Se muestran ${fmtN(lim,0)} de ${fmtN(rows.length,0)} filas. <button id="btnMas">Mostrar todas</button> <span class="note">(las exportaciones y totales incluyen todas)</span></div>`;
+  h+=`</div><footer class="tot">${esc(pie(id))}</footer>`;
+  main.innerHTML=h;
+  const b=$("btnMas");if(b)b.onclick=()=>{S.showAll[id]=true;render();};
+  if(v.dup){
+    const upd=()=>{S.dupCfg.min=Math.max(0,parseFloat($("dupMin").value)||0);S.dupCfg.cant=$("dupCant").checked;
+      try{localStorage.setItem("lectorcfe.dup",JSON.stringify(S.dupCfg));}catch(e){}
+      calcDup();delete S.views.dup;delete S.views.comp;delete S.views.resumen;renderTabs();render();};
+    $("dupMin").onchange=upd;$("dupCant").onchange=upd;
+  }
+}
+function pie(id){
+  const v=vista(id),p=["Registros: "+fmtN(v.rows.length,0)];
+  for(const c of visibles(id))if(c.s&&isNum(c))p.push(c.l+": "+(c.t==="m"?fmtM(sum(v.rows,r=>r[c.k]||0)):fmtCell(c,sum(v.rows,r=>r[c.k]||0))));
+  return"TOTALES · "+p.join("   ·   ");
+}
+$("main").addEventListener("click",e=>{
+  const th=e.target.closest("th[data-k]");if(!th)return;
+  const id=S.tab,k=th.dataset.k,s=S.sort[id];
+  S.sort[id]={k,dir:s&&s.k===k?-s.dir:(isNum(vista(id).cols.find(c=>c.k===k))?-1:1)};
+  render();
+});
+$("main").addEventListener("contextmenu",e=>{if(e.target.closest("th[data-k]")){e.preventDefault();abrirColumnas();}});
+
+// ======================================================= Selector de columnas
+function abrirColumnas(){
+  if(S.tab==="conc"){alert("En la pestaña Conciliación use los botones de descarga de la propia pestaña.");return;}
+  const id=S.tab,v=vista(id);
+  if(v.resumen){alert("La pestaña Resumen no tiene columnas configurables. Elija otra pestaña.");return;}
+  const h=hiddenSet(id);
+  $("modalTitle").textContent="Columnas visibles — "+VISTAS.find(x=>x.id===id).nombre;
+  $("modalBody").innerHTML=v.cols.map(c=>`<label><input type="checkbox" value="${c.k}" ${h.has(c.k)?"":"checked"}> ${esc(c.l)}</label>`).join("");
+  $("modal").classList.add("open");
+}
+const cerrarModal=()=>$("modal").classList.remove("open");
+$("btnCols").onclick=abrirColumnas;
+$("mCancel").onclick=cerrarModal;
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))cerrarModal();});
+$("mTodas").onclick=()=>$("modalBody").querySelectorAll("input").forEach(i=>i.checked=true);
+$("mNinguna").onclick=()=>$("modalBody").querySelectorAll("input").forEach(i=>i.checked=false);
+$("mOk").onclick=()=>{
+  const ins=[...$("modalBody").querySelectorAll("input")];
+  if(!ins.some(i=>i.checked)){alert("Debe quedar al menos una columna visible.");return;}
+  S.hidden[S.tab]=new Set(ins.filter(i=>!i.checked).map(i=>i.value));saveHidden();cerrarModal();render();
+};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrarModal();});
+
+// ======================================================= Conciliación con el sistema (Analytics)
+// Clases de documento: T=ticket, NT=nota de crédito de ticket, F=factura, NF=nota de crédito de factura
+const CLASES={T:"Ticket",NT:"Nota de crédito de ticket",F:"Factura",NF:"Nota de crédito de factura"};
+const ORDEN_CLASES=["T","NT","F","NF"];
+const esCredito=c=>c==="NT"||c==="NF", esFactura=c=>c==="F"||c==="NF";
+const inversa=c=>({T:"NT",NT:"T",F:"NF",NF:"F"})[c];
+function claseXml(t){const b=t>=200?t-100:t,cr=b%10===2,fac=(b>=111&&b<=113)||(b>=121&&b<=123)||(b>=141&&b<=143);return fac?(cr?"NF":"F"):(cr?"NT":"T");}
+function claseNombre(n){n=n.toLowerCase();const cr=/abono|cr[eé]dito|devoluci/.test(n),tk=/simplificada|ticket/.test(n);return tk?(cr?"NT":"T"):(cr?"NF":"F");}
+const keyDoc=(serie,nro,clase)=>serie+"|"+String(nro).trim()+"|"+(esCredito(clase)?"C":"D");
+const keyXml=d=>keyDoc(d.serie,d.nro,claseXml(d.tipo));
+function numES(s){s=String(s==null?"":s).trim().replace(/%/g,"");if(!s)return 0;s=s.replace(/\./g,"").replace(",",".");const v=parseFloat(s);return isFinite(v)?v:0;}
+function splitCsv(line,sep){const out=[];let cur="",q=false;for(let i=0;i<line.length;i++){const c=line[i];if(q){if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}else if(c==='"')q=true;else if(c===sep){out.push(cur);cur="";}else cur+=c;}out.push(cur);return out;}
+// Acepta dd/mm/aaaa, aaaa-mm-dd y el número de serie de Excel (ej. 46344 = 18/11/2026, aparece si el CSV se editó en Excel)
+const dmy2iso=s=>{
+  s=String(s).trim();let m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/.exec(s);
+  if(m)return m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+  m=/^(\d{4})-(\d\d)-(\d\d)/.exec(s);if(m)return m[0];
+  if(/^\d{5}([.,]\d+)?$/.test(s)){const n=Math.floor(parseFloat(s.replace(",",".")));if(n>20000&&n<80000)return new Date(Date.UTC(1899,11,30)+n*86400000).toISOString().slice(0,10);}
+  return "";
+};
+const hoyISO=()=>{const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());};
+
+$("inAn").addEventListener("change",e=>{const f=e.target.files[0];if(f)cargarAnalytics(f);e.target.value="";});
+
+async function cargarAnalytics(file){
+  const buf=await file.arrayBuffer();let text;
+  try{text=new TextDecoder("utf-8",{fatal:true}).decode(buf);}catch(e){text=new TextDecoder("windows-1252").decode(buf);}
+  text=text.replace(/^﻿/,"");
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length){alert("El archivo está vacío.");return;}
+  const sep=lines[0].split(";").length>=lines[0].split(",").length?";":",";
+  const head=splitCsv(lines[0],sep).map(s=>s.trim());
+  if(head.length<14){alert("El archivo no tiene el formato esperado de Analytics (14 columnas: Cód. Tipo Doc.; Tipo Documento; Serie; Número; Fecha Doc; Cliente; RUT; Artículo; Cód. Impuesto; Impuesto; %Impuestos; Base; Impuestos; Neto).");return;}
+  const docs=new Map(),tipos=new Map(),sinFecha=[];let filas=0;
+  for(let i=1;i<lines.length;i++){
+    const c=splitCsv(lines[i],sep);if(c.length<14||!c[3].trim())continue;
+    const r={cod:c[0].trim(),tipoDoc:c[1].trim(),serie:c[2].trim(),nro:c[3].trim(),fecha:dmy2iso(c[4]),cliente:c[5].trim(),rut:c[6].trim(),
+      art:c[7].trim(),codImp:c[8].trim(),imp:c[9].trim(),pct:c[10].trim(),base:numES(c[11]),iva:numES(c[12]),neto:numES(c[13])};
+    r.clase=claseNombre(r.tipoDoc);filas++;
+    if(!r.fecha)sinFecha.push(r.serie+"-"+r.nro+" ("+c[4].trim()+")");
+    if(!tipos.has(r.clase))tipos.set(r.clase,{cod:r.cod,nombre:r.tipoDoc});
+    const k=keyDoc(r.serie,r.nro,r.clase);let d=docs.get(k);
+    if(!d){d={key:k,cod:r.cod,tipoDoc:r.tipoDoc,clase:r.clase,serie:r.serie,nro:r.nro,fecha:r.fecha,cliente:r.cliente,rut:r.rut,total:0,lineas:[]};docs.set(k,d);}
+    d.lineas.push(r);d.total+=r.neto;
+  }
+  if(!docs.size){alert("No se encontraron comprobantes en el archivo.");return;}
+  for(const d of docs.values())d.total=r2(d.total);
+  S.an={nombre:file.name,head:head.slice(0,14),docs,tipos,filas,sinFecha:[...new Set(sinFecha)]};
+  initConc();
+  S.tab="conc";renderTabs();render();
+}
+
+function initConc(){
+  const c=S.conc=S.conc||{sel:new Map()};
+  const def={T:{cod:"1",nombre:"Factura venta simplificada"},NT:{cod:"3",nombre:"Abono factura venta simplificada"},F:{cod:"2",nombre:"Factura venta"},NF:{cod:"4",nombre:"Abono factura venta"}};
+  const maxN=cl=>{let m=0;for(const d of S.docs)if(claseXml(d.tipo)===cl&&d.serie==="A")m=Math.max(m,d.nro);
+    for(const d of S.an.docs.values())if(d.clase===cl&&d.serie==="A")m=Math.max(m,parseInt(d.nro)||0);return m;};
+  c.tipos={};
+  for(const k of ORDEN_CLASES){const v=S.an.tipos.get(k),m=maxN(k);
+    c.tipos[k]={cod:v?v.cod:def[k].cod,nombre:v?v.nombre:def[k].nombre,verificar:!v,serie:"A",nro:String(m?m+1:1)};}
+  // impuestos: se aprenden comparando líneas del sistema con las de los XML
+  const defI={3:{cod:"1",imp:"IVA 22%",pct:"22%"},11:{cod:"4",imp:"PERCIBIDO",pct:"0%"},2:{cod:"2",imp:"IVA 10%",pct:"10%"},1:{cod:"3",imp:"IVA 0%",pct:"0%"}};
+  // nombres que exige el programa de envío a DGI en la columna "Impuesto" (el sistema exporta "IVA BASICO", etc.)
+  const nomFijo={3:"IVA 22%",2:"IVA 10%",1:"IVA 0%"};
+  const xmlBy=new Map(S.docs.map(d=>[keyXml(d),d])),cnt=new Map();let n=0;
+  for(const a of S.an.docs.values()){const d=xmlBy.get(a.key);if(!d)continue;if(++n>800)break;
+    for(const r of a.lineas){const l=d.lineas.find(x=>x.nombre.trim().toUpperCase()===r.art.toUpperCase());if(!l)continue;
+      const k=l.ind+"\u0001"+r.codImp+"\u0001"+r.imp+"\u0001"+r.pct;cnt.set(k,(cnt.get(k)||0)+1);}}
+  c.imp={};
+  for(const ind of [3,11,2,1]){let best=null,bn=0;for(const[k,v]of cnt){const p=k.split("\u0001");if(+p[0]===ind&&v>bn){bn=v;best=p;}}
+    c.imp[ind]=best?{cod:best[1],imp:best[2],pct:best[3],verificar:false}:Object.assign({verificar:true},defI[ind]);
+    if(nomFijo[ind])c.imp[ind].imp=nomFijo[ind];}
+  if(c.fecha===undefined){c.fecha=hoyISO();c.modoFecha="finMes";c.agrupar=false;c.max=30000;c.filaTotales=true;}
+}
+
+// Fecha de los documentos de corrección: "finMes" (por defecto), "original" o "fija"
+const modoFecha=()=>S.conc.modoFecha||(S.conc.fechaOriginal?"original":"finMes");
+function ultimoDiaMes(ym){const y=+ym.slice(0,4),m=+ym.slice(5,7);return ym+"-"+String(new Date(Date.UTC(y,m,0)).getUTCDate()).padStart(2,"0");}
+function ultimoComprobanteMes(ym){
+  let max="";
+  for(const d of S.docs)if(d.fecha.startsWith(ym)&&d.fecha>max)max=d.fecha;
+  if(S.an)for(const d of S.an.docs.values())if(d.fecha.startsWith(ym)&&d.fecha>max)max=d.fecha;
+  return max;
+}
+// Fecha por mes según los datos cargados (no depende de la fecha de hoy):
+// - si hay comprobantes cargados de un mes posterior, el mes está completo → último día del mes
+// - si no, fecha del último comprobante cargado de ese mes (si ese es el último día, coincide)
+// El usuario puede cambiar la fecha de cada mes a mano.
+function hayDatosDespues(f){
+  for(const d of S.docs)if(d.fecha>f)return true;
+  if(S.an)for(const d of S.an.docs.values())if(d.fecha>f)return true;
+  return false;
+}
+function fechaFinMes(f){
+  const ym=f.slice(0,7),ult=ultimoDiaMes(ym),manual=S.conc&&S.conc.fechaMes&&S.conc.fechaMes[ym];
+  const auto=hayDatosDespues(ult)?{fecha:ult,motivo:"mes completo: último día del mes"}
+    :{fecha:ultimoComprobanteMes(ym)||f,motivo:"fecha del último comprobante cargado del mes"};
+  if(manual)return{fecha:manual,motivo:"elegida a mano (automática: "+fmtD(auto.fecha)+")",manual:true};
+  return auto;
+}
+function fechaCorr(it){
+  const m=modoFecha();
+  return m==="original"?it.fecha:m==="fija"?S.conc.fecha:fechaFinMes(it.fecha).fecha;
+}
+
+function mapImp(ind){
+  const m=S.conc.imp[ind];
+  return m?{codImp:m.cod,imp:m.imp,pct:m.pct}:{codImp:"?",imp:"SIN CONFIGURAR ("+indNom(ind)+")",pct:"0%",sinMapa:true};
+}
+// Líneas en formato Analytics a partir de un XML (importes del comprobante, sin signo de NC)
+function lineasXml(d){
+  const out=[],tasa=ind=>ind===2?d.tasaMin:ind===3?d.tasaBas:0;
+  const linea=(art,ind,monto)=>{
+    const t=tasa(ind);let base,iva;
+    if(d.bruto&&t){const neto=r2(monto);base=r2(neto/(1+t/100));iva=r2(neto-base);}else{base=r2(monto);iva=r2(base*t/100);}
+    return Object.assign({art,ind,base,iva,neto:r2(base+iva)},mapImp(ind));
+  };
+  for(const l of d.lineas){const x=linea(l.nombre,l.ind,l.monto*d.fm);if(x.base||x.iva)out.push(x);}
+  for(const g of d.drg||[])out.push(linea(g.desc?"Descuento comercial":"Recargo",g.ind,(g.desc?-1:1)*g.v*d.fm));
+  const mayor=a=>a.reduce((m,x)=>Math.abs(x.neto)>Math.abs(m.neto)?x:m,a[0]);
+  for(const[ind,hdr]of[[3,d.ivaBas],[2,d.ivaMin]]){   // IVA exacto según el encabezado
+    const g=out.filter(x=>x.ind===ind);if(!g.length)continue;
+    const dif=r2(hdr*d.fm-sum(g,x=>x.iva));if(dif){const b=mayor(g);b.iva=r2(b.iva+dif);b.neto=r2(b.base+b.iva);}
+  }
+  const dif=r2(d.total*d.fm-sum(out,x=>x.neto));        // total exacto según el encabezado
+  if(dif&&out.length){const b=mayor(out);b.base=r2(b.base+dif);b.neto=r2(b.neto+dif);}
+  return out;
+}
+function lineasItem(it){
+  const ls=it.doc?lineasXml(it.doc):it.an.lineas.map(r=>({art:r.art,codImp:r.codImp,imp:r.imp,pct:r.pct,base:r.base,iva:r.iva,neto:r.neto}));
+  const tot=sum(ls,l=>l.neto),f=(Math.sign(it.efecto)||1)*(Math.sign(tot)||1);
+  return ls.map(l=>Object.assign({},l,normImp(l.codImp),{base:r2(l.base*f),iva:r2(l.iva*f),neto:r2(l.neto*f)}));
+}
+// Mismo código de impuesto → mismo nombre y % (los del sistema a veces dicen "0,00%" y otras "0%")
+function normImp(cod){
+  for(const ind in S.conc.imp){const m=S.conc.imp[ind];if(m.cod===cod)return{imp:m.imp,pct:m.pct};}
+  return{};
+}
+
+function mkItem(o){
+  const s=S.conc.sel.get(o.key);
+  if(s){if(s.incluir!==undefined)o.incluir=s.incluir;if(s.claseGen)o.claseGen=s.claseGen;}
+  o.efecto=r2(Math.abs(o.total)*(esCredito(o.claseGen)?-1:1));
+  return o;
+}
+
+function calcConc(){
+  const desde=$("fDesde").value||"0000",hasta=$("fHasta").value||"9999";
+  const enRango=f=>f>=desde&&f<=hasta;
+  const dgi=S.docs.filter(d=>enRango(d.fecha));
+  const anAll=[...S.an.docs.values()],an=anAll.filter(a=>enRango(a.fecha)),anFuera=anAll.filter(a=>!enRango(a.fecha));
+  const mD=new Map(dgi.map(d=>[keyXml(d),d])),mA=new Map(an.map(a=>[a.key,a]));
+  const grupos=agruparDup(dgi,S.dupCfg),grupoDe=new Map();
+  grupos.forEach((g,i)=>g.forEach(d=>grupoDe.set(d,{n:i+1,g})));
+  const ref=d=>d.serie+"-"+d.nro,enSis=d=>mA.has(keyXml(d));
+  const items=[],info={redondeo:0,redondeoN:0,difs:[],ceros:[]};
+  for(const[k,d]of mD){
+    const a=mA.get(k),tot=r2(d.total*d.f);
+    if(a){const dif=r2(tot-a.total);if(Math.abs(dif)>=0.05)info.difs.push({d,a,dif});else if(dif){info.redondeo=r2(info.redondeo+dif);info.redondeoN++;}continue;}
+    if(Math.abs(tot)<0.005){info.ceros.push(d);continue;}
+    const gi=grupoDe.get(d),cl=claseXml(d.tipo);let motivo,tipoM;
+    if(gi){const otros=gi.g.filter(x=>x!==d&&enSis(x));tipoM="dup";
+      motivo=otros.length?"Duplicado de "+otros.map(ref).join(", ")+" (ese sí está en el sistema)":"Duplicado (grupo "+gi.n+"); ninguno del grupo está en el sistema";}
+    else{tipoM="soloDgi";motivo="Está en DGI pero no en el sistema";}
+    items.push(mkItem({key:"D|"+k,accion:"Anular en DGI",tipoM,motivo,doc:d,clase:cl,claseGen:inversa(cl),ref:tipoNom(d.tipo)+" "+ref(d),
+      fecha:d.fecha,hora:d.hora,total:tot,cliente:d.recNom,rut:d.recDoc,incluir:true}));
+  }
+  for(const[k,a]of mA){
+    if(mD.has(k)||Math.abs(a.total)<0.005)continue;
+    items.push(mkItem({key:"S|"+k,accion:"Enviar a DGI",tipoM:"noFisc",motivo:a.serie!=="A"?"No fiscalizado (serie "+a.serie+")":"Está en el sistema pero no en DGI",
+      an:a,clase:a.clase,claseGen:a.clase,ref:a.tipoDoc+" "+a.serie+"-"+a.nro,fecha:a.fecha,hora:"",total:a.total,cliente:a.cliente,rut:a.rut,incluir:true}));
+  }
+  for(const g of grupos){   // duplicados que el sistema también tiene registrados más de una vez
+    const es=g.filter(enSis);
+    for(const d of es.slice(1)){const cl=claseXml(d.tipo);
+      items.push(mkItem({key:"X|"+keyXml(d),accion:"Anular en DGI",tipoM:"dupSis",motivo:"Duplicado de "+ref(es[0])+", pero el sistema también registra los dos",
+        doc:d,clase:cl,claseGen:inversa(cl),ref:tipoNom(d.tipo)+" "+ref(d),fecha:d.fecha,hora:d.hora,total:r2(d.total*d.f),cliente:d.recNom,rut:d.recDoc,incluir:false}));}
+  }
+  items.sort((a,b)=>(a.fecha+(a.hora||"99")).localeCompare(b.fecha+(b.hora||"99")));
+  return{desde,hasta,dgi,an,anFuera,items,info,totD:r2(sum(dgi,d=>d.total*d.f)),totA:r2(sum(an,a=>a.total))};
+}
+
+function generarConc(R){
+  const c=S.conc,docs=[],avisos=[],buckets=new Map();
+  const nuevo=(clase,fecha,cliente,rut)=>({clase,fecha,cliente:cliente||"",rut:rut||"",lineas:[],refs:[]});
+  for(const it of R.items){
+    it.gen=[];if(!it.incluir)continue;
+    const ls=lineasItem(it);
+    if(ls.some(l=>l.sinMapa))avisos.push(it.ref+": tiene artículos con un indicador de IVA sin configurar (ver tabla de impuestos).");
+    if(!c.agrupar||esFactura(it.claseGen)){const d=nuevo(it.claseGen,fechaCorr(it),it.cliente,it.rut);d.lineas=ls;d.refs.push(it);docs.push(d);continue;}
+    for(const[codImp,g]of groupBy(ls,l=>l.codImp)){
+      const bk=(c.compensar!==false?"TK":it.claseGen)+"|"+codImp+"|"+fechaCorr(it);
+      if(!buckets.has(bk))buckets.set(bk,[]);
+      buckets.get(bk).push({it,lineas:g,total:r2(sum(g,l=>l.neto))});
+    }
+  }
+  const max=Math.max(1,+c.max||30000);
+  for(const[bk,chunks]of buckets){
+    const[clase0,,fecha]=bk.split("|");
+    // Si se compensan tickets con notas de crédito: primero se ubican los de signo minoritario
+    // para que resten dentro del mismo documento, después el resto de mayor a menor.
+    const sg=Math.sign(sum(chunks,x=>x.total))||-1;
+    chunks.sort((a,b)=>((Math.sign(a.total)===sg)-(Math.sign(b.total)===sg))||Math.abs(b.total)-Math.abs(a.total));
+    const bins=[];
+    for(const ch of chunks){
+      let b=null;
+      if(Math.abs(ch.total)>max)avisos.push(ch.it.ref+": "+fmtM(Math.abs(ch.total))+" supera el máximo por documento; va en un documento propio.");
+      else b=bins.find(x=>!x.lleno&&Math.abs(x.total+ch.total)<=max+0.001);
+      if(!b){b={chunks:[],total:0,lleno:Math.abs(ch.total)>max};bins.push(b);}
+      b.chunks.push(ch);b.total=r2(b.total+ch.total);
+    }
+    for(const b of bins){
+      const d=nuevo(clase0,fecha),agg=new Map();
+      for(const ch of b.chunks){
+        if(!d.refs.includes(ch.it))d.refs.push(ch.it);
+        for(const l of ch.lineas){const k=l.art.toUpperCase()+"\u0001"+l.codImp;let x=agg.get(k);
+          if(!x){x=Object.assign({},l,{base:0,iva:0,neto:0});agg.set(k,x);}
+          x.base=r2(x.base+l.base);x.iva=r2(x.iva+l.iva);x.neto=r2(x.neto+l.neto);}
+      }
+      d.lineas=[...agg.values()].filter(l=>l.base||l.iva||l.neto).sort((a,b)=>Math.abs(b.neto)-Math.abs(a.neto));
+      if(clase0==="TK"){
+        if(!d.lineas.length)continue;   // se compensó todo
+        const t=r2(sum(d.lineas,l=>l.neto));
+        d.clase=t<0?"NT":"T";
+        d.compensa=new Set(b.chunks.map(ch=>Math.sign(ch.total))).size>1;
+        if(!t)avisos.push("Un documento queda con total $ 0 después de compensar; revise sus líneas.");
+      }
+      docs.push(d);
+    }
+  }
+  docs.sort((a,b)=>ORDEN_CLASES.indexOf(a.clase)-ORDEN_CLASES.indexOf(b.clase)||a.fecha.localeCompare(b.fecha));
+  const cont={};for(const k of ORDEN_CLASES)cont[k]=parseInt(c.tipos[k].nro)||1;
+  for(const d of docs){
+    const t=c.tipos[d.clase];
+    Object.assign(d,{cod:t.cod,tipoDoc:t.nombre,serie:t.serie,nro:cont[d.clase]++,total:r2(sum(d.lineas,l=>l.neto)),imps:[...new Set(d.lineas.map(l=>l.imp))].join(", ")});
+    for(const it of d.refs)it.gen.push(d.serie+"-"+d.nro);
+  }
+  // Opción: un solo artículo por documento ("CORRECION [Tipo documento] DD/MM/YYYY - X").
+  // Si el documento tiene más de un tipo de IVA, queda una línea por tipo de IVA con el mismo nombre.
+  if(c.unaLinea){
+    const pref=(c.prefijo==null?"CORRECION":c.prefijo).trim(),contador=new Map();
+    for(const d of docs){
+      const k=d.tipoDoc+"|"+d.fecha,x=(contador.get(k)||0)+1;contador.set(k,x);
+      const nombre=(pref?pref+" ":"")+d.tipoDoc+" "+fmtD(d.fecha)+" - "+x,agg=new Map();
+      for(const l of d.lineas){let y=agg.get(l.codImp);
+        if(!y){y={art:nombre,codImp:l.codImp,imp:l.imp,pct:l.pct,base:0,iva:0,neto:0};agg.set(l.codImp,y);}
+        y.base=r2(y.base+l.base);y.iva=r2(y.iva+l.iva);y.neto=r2(y.neto+l.neto);}
+      d.lineas=[...agg.values()];d.articulo=nombre;
+    }
+  }
+  const usadas=new Set(docs.map(d=>d.clase));
+  for(const k of usadas)if(c.tipos[k].verificar)avisos.unshift(`Verifique el código de "${CLASES[k]}" (${c.tipos[k].cod} - ${c.tipos[k].nombre}): no aparece en el archivo del sistema, es un valor supuesto.`);
+  const impUsados=new Set(docs.flatMap(d=>d.lineas.map(l=>l.codImp)));
+  for(const ind in c.imp)if(c.imp[ind].verificar&&impUsados.has(c.imp[ind].cod))avisos.unshift(`Verifique el impuesto "${c.imp[ind].imp}" (código ${c.imp[ind].cod}): no aparece en el archivo del sistema, es un valor supuesto.`);
+  return{docs,avisos};
+}
+
+function filasAnalytics(G){
+  const rows=[];
+  for(const d of G.docs)for(const l of d.lineas)rows.push([d.cod,d.tipoDoc,d.serie,String(d.nro),d.fecha,d.cliente,d.rut,l.art,l.codImp,l.imp,l.pct,l.base,l.iva,l.neto]);
+  return rows;
+}
+
+function renderConc(){
+  const main=$("main"),prev=main.querySelector(".wrap"),scroll=prev?prev.scrollTop:0;
+  if(!S.an){
+    main.innerHTML=`<div class="wrap"><div class="conc">
+      <h2>Conciliación con el sistema</h2>
+      <p>Compara los CFE de DGI (los XML cargados) con la exportación de ventas del sistema y arma el archivo de correcciones en el mismo formato que <b>Analytics.csv</b>:</p>
+      <ul><li><b>Anular en DGI</b>: comprobantes duplicados o que están en DGI pero no en el sistema (se genera la nota de crédito, o el documento inverso).</li>
+      <li><b>Enviar a DGI</b>: comprobantes del sistema que nunca se fiscalizaron (por ejemplo, serie TX).</li></ul>
+      <p>Se usa el período de los filtros <b>Desde / Hasta</b>.</p>
+      <p style="margin-top:14px"><label class="btn primary" for="inAn">Cargar exportación del sistema (Analytics.csv)…</label></p>
+    </div></div>`;
+    return;
+  }
+  const R=calcConc(),G=generarConc(R),c=S.conc,mf=modoFecha();
+  const mesesFin=[...new Set(R.items.filter(i=>i.incluir).map(i=>i.fecha.slice(0,7)))].sort().map(ym=>{
+    const r=fechaFinMes(ym+"-01"),[y,m]=ym.split("-");
+    return{ym,manual:r.manual,mes:["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"][+m-1]+" "+y,fecha:r.fecha,motivo:r.motivo};});
+  const inc=R.items.filter(i=>i.incluir),efecto=r2(sum(inc,i=>i.efecto)),despues=r2(R.totD+efecto),dif=r2(despues-R.totA);
+  const grp=t=>R.items.filter(i=>i.tipoM===t);
+  const fila=(txt,arr,contrib,nota)=>`<tr><td>${txt}</td><td class="n">${arr}</td><td class="n${contrib<-0.004?" neg":""}">${fmtM(contrib)}</td><td>${nota||""}</td></tr>`;
+  const dupI=grp("dup"),soloI=grp("soloDgi"),nfI=grp("noFisc"),dsI=grp("dupSis");
+  const difSum=r2(sum(R.info.difs,x=>x.dif));
+  const explicado=r2(sum(dupI,i=>i.total)+sum(soloI,i=>i.total)-sum(nfI,i=>i.total)+R.info.redondeo+difSum);
+  const optT=sel=>ORDEN_CLASES.map(k=>`<option value="${k}"${k===sel?" selected":""}>${esc(c.tipos[k].cod+" - "+CLASES[k])}</option>`).join("");
+  let h=`<div class="wrap"><div class="conc">
+  <div class="row"><h2 style="margin:0">Conciliación con el sistema</h2><span class="spacer"></span>
+    <span class="note">Sistema: ${esc(S.an.nombre)} (${fmtN(S.an.docs.size,0)} comprobantes) · Período: ${fmtD(R.desde)} al ${fmtD(R.hasta)}</span>
+    <label class="btn" for="inAn">Cambiar archivo…</label></div>
+  ${S.an.sinFecha.length?`<div class="avisos"><b>Atención:</b> ${S.an.sinFecha.length} comprobantes del sistema tienen una fecha que no se pudo leer y quedan fuera del período: ${esc(S.an.sinFecha.slice(0,10).join(", "))}${S.an.sinFecha.length>10?"…":""}. Revise la columna Fecha Doc del archivo.</div>`:""}
+  <div class="cards">
+    <div class="card"><div class="k">Total en DGI (XML)</div><div class="v">${fmtM(R.totD)}</div><div class="k">${fmtN(R.dgi.length,0)} comprobantes</div></div>
+    <div class="card"><div class="k">Total en el sistema</div><div class="v">${fmtM(R.totA)}</div><div class="k">${fmtN(R.an.length,0)} comprobantes</div></div>
+    <div class="card"><div class="k">Diferencia (DGI − sistema)</div><div class="v">${fmtM(R.totD-R.totA)}</div></div>
+    <div class="card ${Math.abs(dif)<1?"ok":"warn"}"><div class="k">DGI después de las correcciones</div><div class="v">${fmtM(despues)}</div><div class="k">Diferencia con el sistema: ${fmtM(dif)}</div></div>
+  </div>
+  <h3>De dónde sale la diferencia</h3>
+  <table><thead><tr><th>Concepto</th><th class="n">Comprobantes</th><th class="n">Efecto en la diferencia</th><th>Detalle</th></tr></thead><tbody>
+  ${fila("Duplicados en DGI que el sistema registra una sola vez",dupI.length,sum(dupI,i=>i.total),"Se anulan en DGI")}
+  ${fila("Otros comprobantes en DGI que no están en el sistema",soloI.length,sum(soloI,i=>i.total),soloI.length?"Revisar antes de anular":"")}
+  ${fila("No fiscalizados (en el sistema, no en DGI)",nfI.length,-sum(nfI,i=>i.total),"Se envían a DGI")}
+  ${fila("Redondeos de centavos",R.info.redondeoN,R.info.redondeo,"No requieren corrección")}
+  ${R.info.difs.length?fila("Mismo comprobante con distinto importe",R.info.difs.length,difSum,R.info.difs.map(x=>x.d.serie+"-"+x.d.nro+" ("+fmtM(x.dif)+")").join(", ")):""}
+  <tr class="dest"><td>Total explicado</td><td></td><td class="n">${fmtM(explicado)}</td><td>${Math.abs(explicado-(R.totD-R.totA))<0.02?"Coincide con la diferencia":"Sin explicar: "+fmtM(R.totD-R.totA-explicado)}</td></tr>
+  </tbody></table>
+  <p class="note" style="margin-top:6px">Informativo, no afecta la diferencia: ${dsI.length} duplicados que el sistema también registra dos veces (no se incluyen por defecto) ·
+   ${R.info.ceros.length} comprobantes en $ 0 en DGI sin correspondencia · ${R.anFuera.length} comprobantes del sistema fuera del período (${fmtM(sum(R.anFuera,a=>a.total))}).</p>
+
+  <h3>Correcciones (${inc.length} de ${R.items.length} incluidas · efecto en DGI ${fmtM(efecto)})</h3>
+  <div class="row" style="margin-bottom:6px"><button data-act="todos">Incluir todos</button><button data-act="ninguno">Ninguno</button><button data-act="recomendado">Selección recomendada</button></div>
+  <div class="tblwrap"><table><thead><tr><th></th><th>Acción</th><th>Motivo</th><th>Comprobante</th><th>Fecha</th><th>Hora</th><th class="n">Total</th><th>Se genera como</th><th class="n">Efecto en DGI</th><th>Documento generado</th></tr></thead><tbody>`;
+  for(const it of R.items){
+    h+=`<tr${it.incluir?"":' style="opacity:.55"'}><td><input type="checkbox" data-sel="${esc(it.key)}" ${it.incluir?"checked":""}></td><td>${esc(it.accion)}</td><td style="white-space:normal;min-width:260px">${esc(it.motivo)}</td>
+      <td>${esc(it.ref)}</td><td>${fmtD(it.fecha)}</td><td>${esc(it.hora)}</td><td class="n${it.total<0?" neg":""}">${fmtN(it.total,2)}</td>
+      <td><select data-gen="${esc(it.key)}">${optT(it.claseGen)}</select></td><td class="n${it.efecto<0?" neg":""}">${fmtN(it.efecto,2)}</td><td>${esc((it.gen||[]).join(", "))}</td></tr>`;
+  }
+  if(!R.items.length)h+=`<tr><td colspan="10">No hay correcciones: DGI y el sistema coinciden.</td></tr>`;
+  h+=`</tbody></table></div>
+
+  <h3>Opciones del archivo</h3>
+  <div class="opts">
+    <div><b>Fecha de los documentos</b></div>
+    <div style="padding-left:12px;display:flex;flex-direction:column;gap:4px">
+      <label><input type="radio" name="modoFecha" data-c="modoFecha" value="finMes" ${mf==="finMes"?"checked":""}> Cierre de cada mes
+        <span class="note">(último día del mes si el mes está completo en los datos cargados; si no, la fecha del último comprobante cargado de ese mes)</span></label>
+      ${mf==="finMes"?`<div style="padding-left:24px;display:flex;flex-direction:column;gap:4px">${mesesFin.map(x=>`<div>${esc(x.mes)}: <input type="date" data-mes="${x.ym}" value="${x.fecha}">
+        <span class="note">${esc(x.motivo)}</span>${x.manual?` <button data-act="mesauto" data-ym="${x.ym}">Volver a automática</button>`:""}</div>`).join("")||'<span class="note">Sin correcciones incluidas</span>'}</div>`:""}
+      <label><input type="radio" name="modoFecha" data-c="modoFecha" value="original" ${mf==="original"?"checked":""}> Fecha original del comprobante</label>
+      <label><input type="radio" name="modoFecha" data-c="modoFecha" value="fija" ${mf==="fija"?"checked":""}> Una fecha fija:</label>
+      <div style="padding-left:24px"><input type="date" data-c="fecha" value="${c.fecha}" ${mf==="fija"?"":"disabled"}></div>
+    </div>
+    <div><label><input type="checkbox" data-c="agrupar" ${c.agrupar?"checked":""}> Agrupar tickets en documentos de hasta $</label>
+      <input type="number" data-c="max" value="${c.max}" min="1" step="1000" style="width:110px">
+      <span class="note">separados por tipo de IVA · las facturas y sus notas de crédito no se agrupan</span></div>
+    ${c.agrupar&&mf==="original"?`<div class="avisos" style="margin:0">Con "Fecha original del comprobante", los tickets solo se agrupan dentro del mismo día (${G.docs.length} documentos). Elija "Último día del mes" o "Una fecha fija" para agruparlos más.</div>`:""}
+    <div style="padding-left:22px"><label><input type="checkbox" data-c="compensar" ${c.compensar!==false?"checked":""} ${c.agrupar?"":"disabled"}> Compensar tickets con notas de crédito del mismo tipo de IVA y generar un solo documento por el neto</label></div>
+    <div><label><input type="checkbox" data-c="unaLinea" ${c.unaLinea?"checked":""}> Un solo artículo por documento, con el nombre</label>
+      <input type="text" data-c="prefijo" value="${esc(c.prefijo==null?"CORRECION":c.prefijo)}" style="width:120px" ${c.unaLinea?"":"disabled"}>
+      <span class="note">+ [Tipo documento] DD/MM/AAAA - N° correlativo · si el documento tiene varios tipos de IVA, una línea por cada uno</span></div>
+    <div><label>Nombre de la hoja del Excel <input type="text" data-c="hoja" value="${esc(c.hoja==null?"Documentos":c.hoja)}" style="width:160px"></label>
+      <span class="note">tu programa busca la hoja "Documentos"</span></div>
+    <div><label><input type="checkbox" data-c="filaTotales" ${c.filaTotales?"checked":""}> Incluir la fila de totales al final (como el archivo original)</label></div>
+  </div>
+  <div class="row" style="align-items:flex-start;gap:24px;margin-top:10px">
+  <div><p class="note">Tipos de documento y numeración (verifique que los números no estén usados)</p>
+  <table><thead><tr><th>Tipo</th><th>Cód. Tipo Doc.</th><th>Tipo Documento</th><th>Serie</th><th>Nº inicial</th></tr></thead><tbody>`;
+  for(const k of ORDEN_CLASES){const t=c.tipos[k];
+    h+=`<tr><td>${CLASES[k]}${t.verificar?' <span class="vf">verificar</span>':""}</td><td><input type="text" data-t="${k}.cod" value="${esc(t.cod)}" style="width:60px"></td>
+      <td><input type="text" data-t="${k}.nombre" value="${esc(t.nombre)}" style="width:260px"></td><td><input type="text" data-t="${k}.serie" value="${esc(t.serie)}" style="width:60px"></td>
+      <td><input type="text" data-t="${k}.nro" value="${esc(t.nro)}" style="width:100px"></td></tr>`;}
+  h+=`</tbody></table></div><div><p class="note">Impuestos (tomados del archivo del sistema)</p>
+  <table><thead><tr><th>Indicador en DGI</th><th>Cód. Impuesto</th><th>Impuesto</th><th>%Impuestos</th></tr></thead><tbody>`;
+  for(const ind of [3,11,2,1]){const m=c.imp[ind];
+    h+=`<tr><td>${esc(indNom(ind))}${m.verificar?' <span class="vf">verificar</span>':""}</td><td><input type="text" data-i="${ind}.cod" value="${esc(m.cod)}" style="width:60px"></td>
+      <td><input type="text" data-i="${ind}.imp" value="${esc(m.imp)}" style="width:150px"></td><td><input type="text" data-i="${ind}.pct" value="${esc(m.pct)}" style="width:70px"></td></tr>`;}
+  h+=`</tbody></table></div></div>`;
+  if(G.avisos.length)h+=`<div class="avisos"><b>Atención</b><ul>${[...new Set(G.avisos)].map(a=>`<li>${esc(a)}</li>`).join("")}</ul></div>`;
+  h+=`<h3>Documentos que se van a generar (${G.docs.length} · total ${fmtM(sum(G.docs,d=>d.total))})</h3>
+  <div class="tblwrap"><table><thead><tr><th>Cód.</th><th>Tipo Documento</th><th>Serie</th><th>Número</th><th>Fecha</th><th>Impuesto</th><th class="n">Líneas</th><th class="n">Total</th><th>Corrige</th></tr></thead><tbody>`;
+  for(const d of G.docs)h+=`<tr><td>${esc(d.cod)}</td><td>${esc(d.tipoDoc)}${d.articulo?`<div class="note">${esc(d.articulo)}</div>`:""}</td><td>${esc(d.serie)}</td><td>${d.nro}</td><td>${fmtD(d.fecha)}</td><td>${esc(d.imps)}</td>
+    <td class="n">${d.lineas.length}</td><td class="n${d.total<0?" neg":""}">${fmtN(d.total,2)}</td><td style="white-space:normal;min-width:240px">${d.compensa?"<b>Compensa tickets y NC:</b> ":""}${esc(d.refs.map(i=>i.ref.replace(/^.* /,"")).join(", "))}</td></tr>`;
+  if(!G.docs.length)h+=`<tr><td colspan="9">No hay correcciones seleccionadas.</td></tr>`;
+  h+=`</tbody></table></div>
+  <div class="row" style="margin-top:14px">
+    <button class="primary" data-act="xlsx" ${G.docs.length?"":"disabled"}>Descargar Excel (formato Analytics)</button>
+    <button data-act="csv" ${G.docs.length?"":"disabled"}>Descargar CSV (formato Analytics)</button>
+    <button data-act="detalle" ${R.items.length?"":"disabled"}>Descargar detalle de la conciliación</button>
+    <span class="note">El archivo trae <b>${G.docs.length} documentos</b> (${c.agrupar?"agrupados":"sin agrupar"}) en
+      <b>${sum(G.docs,d=>d.lineas.length)} filas</b>${c.unaLinea?"":": cada fila es un artículo, como en Analytics.csv"}.</span>
+  </div>
+  <p class="note" style="margin-top:8px">El archivo contiene solo las correcciones para enviar a DGI. Si al procesarlo el sistema también las registra como ventas, el total del sistema va a cambiar en el mismo importe.</p>
+  </div></div>`;
+  main.innerHTML=h;
+  const w=main.querySelector(".wrap");if(w)w.scrollTop=scroll;
+  S.concUlt={R,G};
+}
+
+$("main").addEventListener("change",e=>{
+  if(S.tab!=="conc"||!S.conc)return;
+  const t=e.target,c=S.conc,ds=t.dataset;
+  const sel=k=>{let s=c.sel.get(k);if(!s){s={};c.sel.set(k,s);}return s;};
+  if(ds.sel)sel(ds.sel).incluir=t.checked;
+  else if(ds.gen)sel(ds.gen).claseGen=t.value;
+  else if(ds.c)c[ds.c]=t.type==="checkbox"?t.checked:(ds.c==="max"?+t.value:t.value);
+  else if(ds.t){const[k,f]=ds.t.split(".");c.tipos[k][f]=t.value.trim();if(f==="cod"||f==="nombre")c.tipos[k].verificar=false;}
+  else if(ds.i){const[k,f]=ds.i.split(".");c.imp[k][f]=t.value.trim();c.imp[k].verificar=false;}
+  else if(ds.mes){c.fechaMes=c.fechaMes||{};if(t.value)c.fechaMes[ds.mes]=t.value;else delete c.fechaMes[ds.mes];}
+  else return;
+  renderConc();
+});
+$("main").addEventListener("click",e=>{
+  if(S.tab!=="conc")return;
+  const b=e.target.closest("button[data-act]");if(!b||!S.concUlt)return;
+  const{R,G}=S.concUlt,a=b.dataset.act,c=S.conc;
+  if(a==="mesauto"){if(c.fechaMes)delete c.fechaMes[b.dataset.ym];renderConc();return;}
+  if(a==="todos"||a==="ninguno"||a==="recomendado"){
+    for(const it of R.items){const s=c.sel.get(it.key)||{};s.incluir=a==="todos"?true:a==="ninguno"?false:it.tipoM!=="dupSis";c.sel.set(it.key,s);}
+    renderConc();return;
+  }
+  const ss=String(new Date().getSeconds()).padStart(2,"0");
+  const nombreBase="Correcciones_DGI_"+(c.agrupar?"agrupado":"sin_agrupar")+"_"+G.docs.length+"docs_"+sello()+ss;
+  const head=S.an.head,rows=filasAnalytics(G);
+  const totRow=()=>{const t=[11,12,13].map(i=>r2(sum(rows,r=>r[i])));return["","","","","","","","","","","",t[0],t[1],t[2]];};
+  if(a==="xlsx"){
+    const out=rows.map(r=>r.slice());if(c.filaTotales)out.push(totRow());
+    const hoja=String(c.hoja==null?"Documentos":c.hoja).replace(/[\[\]:*?\/\\]/g,"").slice(0,31)||"Documentos";
+    descargar(armarXlsx([[hoja,hojaAnalytics(head,out)]],ESTILOS_CSV),nombreBase+".xlsx");
+  }else if(a==="csv"){
+    const q=s=>/[;"\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+    const val=(v,i)=>i===4?fmtD(v):(i>=11?String(r2(v)).replace(".",","):q(String(v)));
+    const lines=[head.join(";")].concat(rows.map(r=>r.map(val).join(";")));
+    if(c.filaTotales){const t=totRow();lines.push(";;;;;;;;;;;"+fmtN(t[11],2)+";"+fmtN(t[12],2)+";"+fmtN(t[13],2));}
+    descargar(new Blob([enc1252(lines.join("\r\n")+"\r\n")],{type:"text/csv"}),nombreBase+".csv");
+  }else if(a==="detalle"){
+    const h1=["Incluida","Acción","Motivo","Comprobante","Fecha","Hora","Total original","Se genera como","Efecto en DGI","Documento generado"];
+    const r1=R.items.map(i=>[i.incluir?"Sí":"No",i.accion,i.motivo,i.ref,i.fecha,i.hora,i.total,CLASES[i.claseGen],i.efecto,(i.gen||[]).join(", ")]);
+    const h2=["Cód. Tipo Doc.","Tipo Documento","Serie","Número","Fecha","Impuesto","Líneas","Total","Comprobantes que corrige"];
+    const r2_=G.docs.map(d=>[d.cod,d.tipoDoc,d.serie,String(d.nro),d.fecha,d.imps,String(d.lineas.length),d.total,d.refs.map(i=>i.ref).join(", ")]);
+    const h3=["Concepto","Importe"];
+    const efecto=r2(sum(R.items.filter(i=>i.incluir),i=>i.efecto));
+    const r3=[["Total DGI (XML) "+fmtD(R.desde)+" al "+fmtD(R.hasta),R.totD],["Total sistema",R.totA],["Diferencia DGI − sistema",r2(R.totD-R.totA)],
+      ["Efecto de las correcciones incluidas",efecto],["DGI después de corregir",r2(R.totD+efecto)],["Diferencia final con el sistema",r2(R.totD+efecto-R.totA)]];
+    descargar(armarXlsx([["Resumen",hojaSimple(h3,r3,["s","m"])],["Correcciones",hojaSimple(h1,r1,["s","s","s","s","d","s","m","s","m","s"])],
+      ["Documentos generados",hojaSimple(h2,r2_,["n","s","s","n","d","s","n","m","s"])]]),"Conciliacion_"+sello()+".xlsx");
+  }
+});
+function enc1252(str){
+  const map={0x20AC:0x80,0x201A:0x82,0x192:0x83,0x201E:0x84,0x2026:0x85,0x2020:0x86,0x2021:0x87,0x2C6:0x88,0x2030:0x89,0x160:0x8A,0x2039:0x8B,0x152:0x8C,0x17D:0x8E,
+    0x2018:0x91,0x2019:0x92,0x201C:0x93,0x201D:0x94,0x2022:0x95,0x2013:0x96,0x2014:0x97,0x2DC:0x98,0x2122:0x99,0x161:0x9A,0x203A:0x9B,0x153:0x9C,0x17E:0x9E,0x178:0x9F};
+  const out=new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);out[i]=(c<0x80||(c>=0xA0&&c<0x100))?c:(map[c]||0x3F);}
+  return out;
+}
+
+// ======================================================= Exportación
+async function descargar(blob,nombre){blob=await blob;const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+const sello=()=>{const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"_"+p(d.getHours())+p(d.getMinutes());};
+function exportCols(id){const v=vista(id);return v.resumen?v.cols:visibles(id);}
+
+$("btnCsv").onclick=()=>{
+  if(S.tab==="conc"){alert("En la pestaña Conciliación use los botones de descarga de la propia pestaña.");return;}
+  const id=S.tab,cols=exportCols(id),rows=filasOrdenadas(id);
+  const q=s=>/[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  const val=(c,v)=>{if(v===null||v===undefined)return"";if(c.t==="d")return fmtD(v);
+    if(isNum(c)&&typeof v==="number")return v.toFixed(c.t==="q"?3:c.t==="i"?0:2).replace(".",",");return q(String(v));};
+  const lines=[cols.map(c=>q(c.l)).join(";")].concat(rows.map(r=>cols.map(c=>val(c,r[c.k])).join(";")));
+  const nombre=VISTAS.find(x=>x.id===id).nombre.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  descargar(new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),"CFE_"+nombre+"_"+sello()+".csv");
+};
+
+// ---- XLSX mínimo (zip sin compresión), sin librerías externas
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+// Comprime con deflate (como Excel). Si el navegador no puede, guarda sin comprimir.
+async function deflar(u){
+  try{if(typeof CompressionStream==="undefined")return null;
+    const s=new Blob([u]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(s).arrayBuffer());}catch(e){return null;}
+}
+async function zip(files){
+  const enc=new TextEncoder(),partes=[],central=[];let off=0;
+  const d=new Date(),dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+  for(const[name,str]of files){
+    const nb=enc.encode(name),raw=enc.encode(str),crc=crc32(raw),z=await deflar(raw);
+    const met=z?8:0,data=z||raw,utf=/[^\x20-\x7e]/.test(name)?0x0800:0;
+    const h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,utf,true);h.setUint16(8,met,true);h.setUint16(10,tm,true);h.setUint16(12,dt,true);
+    h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,raw.length,true);h.setUint16(26,nb.length,true);h.setUint16(28,0,true);
+    partes.push(h.buffer,nb,data);
+    const c=new DataView(new ArrayBuffer(46));
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,utf,true);c.setUint16(10,met,true);c.setUint16(12,tm,true);c.setUint16(14,dt,true);
+    c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,raw.length,true);c.setUint16(28,nb.length,true);
+    c.setUint32(42,off,true);
+    central.push(c.buffer,nb);
+    off+=30+nb.length+data.length;
+  }
+  const cdSize=central.reduce((s,b)=>s+b.byteLength,0);
+  const e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...partes,...central,e.buffer],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+const xe=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,"");
+function colLetra(i){let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}
+function serialFecha(s){const[y,m,d]=s.split("-").map(Number);return(Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000;}
+
+$("btnXlsx").onclick=()=>{
+  const hojas=[],usados=new Set();
+  for(const vd of VISTAS){
+    if(vd.id==="err"&&!S.errores.length)continue;
+    const v=vista(vd.id),cols=exportCols(vd.id),rows=filasOrdenadas(vd.id);
+    let nom=vd.nombre.replace(/[\[\]:*?\/\\()]/g,"").slice(0,31);while(usados.has(nom))nom=nom.slice(0,28)+"_"+usados.size;usados.add(nom);
+    let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>`;
+    cols.forEach((c,i)=>{let w=c.l.length;for(let j=0;j<Math.min(rows.length,300);j++)w=Math.max(w,fmtCell(c,rows[j][c.k]).length);x+=`<col min="${i+1}" max="${i+1}" width="${Math.min(70,w+3)}" customWidth="1"/>`;});
+    x+=`</cols><sheetData><row r="1">`+cols.map((c,i)=>`<c r="${colLetra(i)}1" t="inlineStr" s="1"><is><t>${xe(c.l)}</t></is></c>`).join("")+`</row>`;
+    rows.forEach((r,ri)=>{
+      const n=ri+2,sec=v.resumen&&r._sec,bold=v.resumen&&r._dest;
+      x+=`<row r="${n}">`;
+      cols.forEach((c,i)=>{
+        const ref=colLetra(i)+n,val=r[c.k];
+        if(val===null||val===undefined||val===""){if(sec)x+=`<c r="${ref}" s="6"/>`;return;}
+        if(c.t==="d")x+=`<c r="${ref}" s="5"><v>${serialFecha(val)}</v></c>`;
+        else if(isNum(c)&&typeof val==="number")x+=`<c r="${ref}" s="${c.t==="q"?3:c.t==="i"?4:2}"><v>${c.t==="q"?val:Math.round(val*100)/100}</v></c>`;
+        else x+=`<c r="${ref}" t="inlineStr"${sec?' s="6"':bold?' s="7"':""}><is><t xml:space="preserve">${xe(val)}</t></is></c>`;
+      });
+      x+=`</row>`;
+    });
+    x+=`</sheetData></worksheet>`;
+    hojas.push([nom,x]);
+  }
+  descargar(armarXlsx(hojas),"CFE_Reporte_"+sello()+".xlsx");
+};
+// styles.xml y theme1.xml copiados tal cual de un archivo guardado por Excel (Prueba\rar\Anda.xlsx);
+// en XL_STYLES_BASE el bloque <cellXfs> está reemplazado por @@CELLXFS@@.
+const XL_STYLES_BASE=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac x16r2 xr" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:x16r2="http://schemas.microsoft.com/office/spreadsheetml/2015/02/main" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"><fonts count="18" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color theme="1"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="18"/><color theme="3"/><name val="Aptos Display"/><family val="2"/><scheme val="major"/></font><font><b/><sz val="15"/><color theme="3"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="13"/><color theme="3"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="11"/><color theme="3"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FF006100"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FF9C0006"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FF9C5700"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FF3F3F76"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="11"/><color rgb="FF3F3F3F"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="11"/><color rgb="FFFA7D00"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FFFA7D00"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="11"/><color theme="0"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color rgb="FFFF0000"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><i/><sz val="11"/><color rgb="FF7F7F7F"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><b/><sz val="11"/><color theme="1"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font><font><sz val="11"/><color theme="0"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font></fonts><fills count="33"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFC6EFCE"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFC7CE"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFEB9C"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFCC99"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFA5A5A5"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFFFCC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="4"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="4" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="4" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="4" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="5"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="5" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="5" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="5" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="6"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="6" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="6" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="6" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="7"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="7" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="7" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="7" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="8"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="8" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="8" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="8" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="9"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="9" tint="0.79998168889431442"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="9" tint="0.59999389629810485"/><bgColor indexed="65"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor theme="9" tint="0.39997558519241921"/><bgColor indexed="65"/></patternFill></fill></fills><borders count="10"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="thick"><color theme="4"/></bottom><diagonal/></border><border><left/><right/><top/><bottom style="thick"><color theme="4" tint="0.499984740745262"/></bottom><diagonal/></border><border><left/><right/><top/><bottom style="medium"><color theme="4" tint="0.39997558519241921"/></bottom><diagonal/></border><border><left style="thin"><color rgb="FF7F7F7F"/></left><right style="thin"><color rgb="FF7F7F7F"/></right><top style="thin"><color rgb="FF7F7F7F"/></top><bottom style="thin"><color rgb="FF7F7F7F"/></bottom><diagonal/></border><border><left style="thin"><color rgb="FF3F3F3F"/></left><right style="thin"><color rgb="FF3F3F3F"/></right><top style="thin"><color rgb="FF3F3F3F"/></top><bottom style="thin"><color rgb="FF3F3F3F"/></bottom><diagonal/></border><border><left/><right/><top/><bottom style="double"><color rgb="FFFF8001"/></bottom><diagonal/></border><border><left style="double"><color rgb="FF3F3F3F"/></left><right style="double"><color rgb="FF3F3F3F"/></right><top style="double"><color rgb="FF3F3F3F"/></top><bottom style="double"><color rgb="FF3F3F3F"/></bottom><diagonal/></border><border><left style="thin"><color rgb="FFB2B2B2"/></left><right style="thin"><color rgb="FFB2B2B2"/></right><top style="thin"><color rgb="FFB2B2B2"/></top><bottom style="thin"><color rgb="FFB2B2B2"/></bottom><diagonal/></border><border><left/><right/><top style="thin"><color theme="4"/></top><bottom style="double"><color theme="4"/></bottom><diagonal/></border></borders><cellStyleXfs count="42"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/><xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyNumberFormat="0" applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyNumberFormat="0" applyFill="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="4" fillId="0" borderId="2" applyNumberFormat="0" applyFill="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="5" fillId="0" borderId="3" applyNumberFormat="0" applyFill="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="5" fillId="0" borderId="0" applyNumberFormat="0" applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="6" fillId="2" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="7" fillId="3" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="8" fillId="4" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="9" fillId="5" borderId="4" applyNumberFormat="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="10" fillId="6" borderId="5" applyNumberFormat="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="11" fillId="6" borderId="4" applyNumberFormat="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="12" fillId="0" borderId="6" applyNumberFormat="0" applyFill="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="13" fillId="7" borderId="7" applyNumberFormat="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="14" fillId="0" borderId="0" applyNumberFormat="0" applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="8" borderId="8" applyNumberFormat="0" applyFont="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="15" fillId="0" borderId="0" applyNumberFormat="0" applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="16" fillId="0" borderId="9" applyNumberFormat="0" applyFill="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="9" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="10" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="11" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="12" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="13" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="14" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="15" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="16" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="17" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="18" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="19" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="20" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="21" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="22" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="23" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="24" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="25" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="26" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="27" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="28" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="17" fillId="29" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="30" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="31" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/><xf numFmtId="0" fontId="1" fillId="32" borderId="0" applyNumberFormat="0" applyBorder="0" applyAlignment="0" applyProtection="0"/></cellStyleXfs>@@CELLXFS@@<cellStyles count="42"><cellStyle name="20% - Accent1" xfId="19" builtinId="30" customBuiltin="1"/><cellStyle name="20% - Accent2" xfId="23" builtinId="34" customBuiltin="1"/><cellStyle name="20% - Accent3" xfId="27" builtinId="38" customBuiltin="1"/><cellStyle name="20% - Accent4" xfId="31" builtinId="42" customBuiltin="1"/><cellStyle name="20% - Accent5" xfId="35" builtinId="46" customBuiltin="1"/><cellStyle name="20% - Accent6" xfId="39" builtinId="50" customBuiltin="1"/><cellStyle name="40% - Accent1" xfId="20" builtinId="31" customBuiltin="1"/><cellStyle name="40% - Accent2" xfId="24" builtinId="35" customBuiltin="1"/><cellStyle name="40% - Accent3" xfId="28" builtinId="39" customBuiltin="1"/><cellStyle name="40% - Accent4" xfId="32" builtinId="43" customBuiltin="1"/><cellStyle name="40% - Accent5" xfId="36" builtinId="47" customBuiltin="1"/><cellStyle name="40% - Accent6" xfId="40" builtinId="51" customBuiltin="1"/><cellStyle name="60% - Accent1" xfId="21" builtinId="32" customBuiltin="1"/><cellStyle name="60% - Accent2" xfId="25" builtinId="36" customBuiltin="1"/><cellStyle name="60% - Accent3" xfId="29" builtinId="40" customBuiltin="1"/><cellStyle name="60% - Accent4" xfId="33" builtinId="44" customBuiltin="1"/><cellStyle name="60% - Accent5" xfId="37" builtinId="48" customBuiltin="1"/><cellStyle name="60% - Accent6" xfId="41" builtinId="52" customBuiltin="1"/><cellStyle name="Accent1" xfId="18" builtinId="29" customBuiltin="1"/><cellStyle name="Accent2" xfId="22" builtinId="33" customBuiltin="1"/><cellStyle name="Accent3" xfId="26" builtinId="37" customBuiltin="1"/><cellStyle name="Accent4" xfId="30" builtinId="41" customBuiltin="1"/><cellStyle name="Accent5" xfId="34" builtinId="45" customBuiltin="1"/><cellStyle name="Accent6" xfId="38" builtinId="49" customBuiltin="1"/><cellStyle name="Bad" xfId="7" builtinId="27" customBuiltin="1"/><cellStyle name="Calculation" xfId="11" builtinId="22" customBuiltin="1"/><cellStyle name="Check Cell" xfId="13" builtinId="23" customBuiltin="1"/><cellStyle name="Explanatory Text" xfId="16" builtinId="53" customBuiltin="1"/><cellStyle name="Good" xfId="6" builtinId="26" customBuiltin="1"/><cellStyle name="Heading 1" xfId="2" builtinId="16" customBuiltin="1"/><cellStyle name="Heading 2" xfId="3" builtinId="17" customBuiltin="1"/><cellStyle name="Heading 3" xfId="4" builtinId="18" customBuiltin="1"/><cellStyle name="Heading 4" xfId="5" builtinId="19" customBuiltin="1"/><cellStyle name="Input" xfId="9" builtinId="20" customBuiltin="1"/><cellStyle name="Linked Cell" xfId="12" builtinId="24" customBuiltin="1"/><cellStyle name="Neutral" xfId="8" builtinId="28" customBuiltin="1"/><cellStyle name="Normal" xfId="0" builtinId="0"/><cellStyle name="Note" xfId="15" builtinId="10" customBuiltin="1"/><cellStyle name="Output" xfId="10" builtinId="21" customBuiltin="1"/><cellStyle name="Title" xfId="1" builtinId="15" customBuiltin="1"/><cellStyle name="Total" xfId="17" builtinId="25" customBuiltin="1"/><cellStyle name="Warning Text" xfId="14" builtinId="11" customBuiltin="1"/></cellStyles><dxfs count="0"/><tableStyles count="0" defaultTableStyle="TableStyleMedium2" defaultPivotStyle="PivotStyleLight16"/><extLst><ext uri="{EB79DEF2-80B8-43e5-95BD-54CBDDF9020C}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:slicerStyles defaultSlicerStyle="SlicerStyleLight1"/></ext><ext uri="{9260A510-F301-46a8-8635-F512D64BE5F5}" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main"><x15:timelineStyles defaultTimelineStyle="TimeSlicerStyleLight1"/></ext></extLst></styleSheet>`;
+const XL_THEME=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="0E2841"/></a:dk2><a:lt2><a:srgbClr val="E8E8E8"/></a:lt2><a:accent1><a:srgbClr val="156082"/></a:accent1><a:accent2><a:srgbClr val="E97132"/></a:accent2><a:accent3><a:srgbClr val="196B24"/></a:accent3><a:accent4><a:srgbClr val="0F9ED5"/></a:accent4><a:accent5><a:srgbClr val="A02B93"/></a:accent5><a:accent6><a:srgbClr val="4EA72E"/></a:accent6><a:hlink><a:srgbClr val="467886"/></a:hlink><a:folHlink><a:srgbClr val="96607D"/></a:folHlink></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Aptos Display" panose="02110004020202020204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游ゴシック Light"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线 Light"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Times New Roman"/><a:font script="Hebr" typeface="Times New Roman"/><a:font script="Thai" typeface="Tahoma"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="MoolBoran"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Times New Roman"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/><a:font script="Armn" typeface="Arial"/><a:font script="Bugi" typeface="Leelawadee UI"/><a:font script="Bopo" typeface="Microsoft JhengHei"/><a:font script="Java" typeface="Javanese Text"/><a:font script="Lisu" typeface="Segoe UI"/><a:font script="Mymr" typeface="Myanmar Text"/><a:font script="Nkoo" typeface="Ebrima"/><a:font script="Olck" typeface="Nirmala UI"/><a:font script="Osma" typeface="Ebrima"/><a:font script="Phag" typeface="Phagspa"/><a:font script="Syrn" typeface="Estrangelo Edessa"/><a:font script="Syrj" typeface="Estrangelo Edessa"/><a:font script="Syre" typeface="Estrangelo Edessa"/><a:font script="Sora" typeface="Nirmala UI"/><a:font script="Tale" typeface="Microsoft Tai Le"/><a:font script="Talu" typeface="Microsoft New Tai Lue"/><a:font script="Tfng" typeface="Ebrima"/></a:majorFont><a:minorFont><a:latin typeface="Aptos Narrow" panose="02110004020202020204"/><a:ea typeface=""/><a:cs typeface=""/><a:font script="Jpan" typeface="游ゴシック"/><a:font script="Hang" typeface="맑은 고딕"/><a:font script="Hans" typeface="等线"/><a:font script="Hant" typeface="新細明體"/><a:font script="Arab" typeface="Arial"/><a:font script="Hebr" typeface="Arial"/><a:font script="Thai" typeface="Tahoma"/><a:font script="Ethi" typeface="Nyala"/><a:font script="Beng" typeface="Vrinda"/><a:font script="Gujr" typeface="Shruti"/><a:font script="Khmr" typeface="DaunPenh"/><a:font script="Knda" typeface="Tunga"/><a:font script="Guru" typeface="Raavi"/><a:font script="Cans" typeface="Euphemia"/><a:font script="Cher" typeface="Plantagenet Cherokee"/><a:font script="Yiii" typeface="Microsoft Yi Baiti"/><a:font script="Tibt" typeface="Microsoft Himalaya"/><a:font script="Thaa" typeface="MV Boli"/><a:font script="Deva" typeface="Mangal"/><a:font script="Telu" typeface="Gautami"/><a:font script="Taml" typeface="Latha"/><a:font script="Syrc" typeface="Estrangelo Edessa"/><a:font script="Orya" typeface="Kalinga"/><a:font script="Mlym" typeface="Kartika"/><a:font script="Laoo" typeface="DokChampa"/><a:font script="Sinh" typeface="Iskoola Pota"/><a:font script="Mong" typeface="Mongolian Baiti"/><a:font script="Viet" typeface="Arial"/><a:font script="Uigh" typeface="Microsoft Uighur"/><a:font script="Geor" typeface="Sylfaen"/><a:font script="Armn" typeface="Arial"/><a:font script="Bugi" typeface="Leelawadee UI"/><a:font script="Bopo" typeface="Microsoft JhengHei"/><a:font script="Java" typeface="Javanese Text"/><a:font script="Lisu" typeface="Segoe UI"/><a:font script="Mymr" typeface="Myanmar Text"/><a:font script="Nkoo" typeface="Ebrima"/><a:font script="Olck" typeface="Nirmala UI"/><a:font script="Osma" typeface="Ebrima"/><a:font script="Phag" typeface="Phagspa"/><a:font script="Syrn" typeface="Estrangelo Edessa"/><a:font script="Syrj" typeface="Estrangelo Edessa"/><a:font script="Syre" typeface="Estrangelo Edessa"/><a:font script="Sora" typeface="Nirmala UI"/><a:font script="Tale" typeface="Microsoft Tai Le"/><a:font script="Talu" typeface="Microsoft New Tai Lue"/><a:font script="Tfng" typeface="Ebrima"/></a:minorFont></a:fontScheme><a:fmtScheme name="Office"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:lumMod val="110000"/><a:satMod val="105000"/><a:tint val="67000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="103000"/><a:tint val="73000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="105000"/><a:satMod val="109000"/><a:tint val="81000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:satMod val="103000"/><a:lumMod val="102000"/><a:tint val="94000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:satMod val="110000"/><a:lumMod val="100000"/><a:shade val="100000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:lumMod val="99000"/><a:satMod val="120000"/><a:shade val="78000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:fillStyleLst><a:lnStyleLst><a:ln w="12700" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="19050" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln><a:ln w="25400" cap="flat" cmpd="sng" algn="ctr"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:prstDash val="solid"/><a:miter lim="800000"/></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst><a:outerShdw blurRad="57150" dist="19050" dir="5400000" algn="ctr" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="63000"/></a:srgbClr></a:outerShdw></a:effectLst></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"><a:tint val="95000"/><a:satMod val="170000"/></a:schemeClr></a:solidFill><a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="phClr"><a:tint val="93000"/><a:satMod val="150000"/><a:shade val="98000"/><a:lumMod val="102000"/></a:schemeClr></a:gs><a:gs pos="50000"><a:schemeClr val="phClr"><a:tint val="98000"/><a:satMod val="130000"/><a:shade val="90000"/><a:lumMod val="103000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:schemeClr val="phClr"><a:shade val="63000"/><a:satMod val="120000"/></a:schemeClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults><a:lnDef><a:spPr/><a:bodyPr/><a:lstStyle/><a:style><a:lnRef idx="2"><a:schemeClr val="accent1"/></a:lnRef><a:fillRef idx="0"><a:schemeClr val="accent1"/></a:fillRef><a:effectRef idx="1"><a:schemeClr val="accent1"/></a:effectRef><a:fontRef idx="minor"><a:schemeClr val="tx1"/></a:fontRef></a:style></a:lnDef></a:objectDefaults><a:extraClrSchemeLst/><a:extLst><a:ext uri="{05A4C25C-085E-4340-85A3-A5531E510DB2}"><thm15:themeFamily xmlns:thm15="http://schemas.microsoft.com/office/thememl/2012/main" name="Office Theme" id="{2E142A2C-CD16-42D6-873A-C26D2A0506FA}" vid="{1BDDFF52-6CD6-40A5-AB3C-68EB2F1E4D0A}"/></a:ext></a:extLst></a:theme>`;
+// Arma un styles.xml completo de Excel con los <cellXfs> propios.
+// fontsExtra/fillsExtra se agregan al final de <fonts>/<fills>; xfs(f0,fi0) recibe el índice del primero agregado.
+function estilosExcel(numFmts,fontsExtra,fillsExtra,xfs){
+  let s=XL_STYLES_BASE,f0=0,fi0=0;
+  s=s.replace(/<fonts count="(\d+)"([^>]*)>([\s\S]*?)<\/fonts>/,(m,c,a,inner)=>{f0=+c;return `<fonts count="${f0+fontsExtra.length}"${a}>${inner}${fontsExtra.join("")}</fonts>`;});
+  s=s.replace(/<fills count="(\d+)">([\s\S]*?)<\/fills>/,(m,c,inner)=>{fi0=+c;return `<fills count="${fi0+fillsExtra.length}">${inner}${fillsExtra.join("")}</fills>`;});
+  if(numFmts.length)s=s.replace("<fonts ",`<numFmts count="${numFmts.length}">`+numFmts.map(([id,code])=>`<numFmt numFmtId="${id}" formatCode="${xe(code)}"/>`).join("")+`</numFmts><fonts `);
+  const lista=xfs(f0,fi0);
+  return s.replace("@@CELLXFS@@",`<cellXfs count="${lista.length}">${lista.join("")}</cellXfs>`);
+}
+const XF=(num,font,fill,extra)=>`<xf numFmtId="${num}" fontId="${font}" fillId="${fill}" borderId="0" xfId="0"${extra||""}/>`;
+// Estilos "como Excel al abrir el CSV": 0 general, 1 fecha (formato 14 integrado = d/m/yyyy en Uruguay), 2 0%, 3 0,00%, 4 texto (@)
+const ESTILOS_CSV=estilosExcel([],[],[],()=>[XF(0,0,0),XF(14,0,0,' applyNumberFormat="1"'),XF(9,0,0,' applyNumberFormat="1"'),XF(10,0,0,' applyNumberFormat="1"'),XF(49,0,0,' applyNumberFormat="1"')]);
+// Estilos de los reportes: 0 general, 1 encabezado, 2 #,##0.00, 3 #,##0.000, 4 0, 5 fecha, 6 total, 7 negrita
+const ESTILOS_REPORTE=estilosExcel([[164,"#,##0.000"],[165,"dd/mm/yyyy"]],
+  [`<font><b/><sz val="11"/><color theme="1"/><name val="Aptos Narrow"/><family val="2"/><scheme val="minor"/></font>`],
+  [`<fill><patternFill patternType="solid"><fgColor rgb="FFE4EBF3"/><bgColor indexed="64"/></patternFill></fill>`,`<fill><patternFill patternType="solid"><fgColor rgb="FFD6E2F0"/><bgColor indexed="64"/></patternFill></fill>`],
+  (b,fi)=>[XF(0,0,0),XF(0,b,fi,' applyFont="1" applyFill="1"'),XF(4,0,0,' applyNumberFormat="1"'),XF(164,0,0,' applyNumberFormat="1"'),XF(1,0,0,' applyNumberFormat="1"'),XF(165,0,0,' applyNumberFormat="1"'),XF(0,b,fi+1,' applyFont="1" applyFill="1"'),XF(0,b,0,' applyFont="1"')]);
+// Hoja con el formato de Analytics.csv abierto en Excel. El RUT queda como texto para no perder ceros iniciales.
+function hojaAnalytics(head,rows){
+  const C=(ref,v,s)=>`<c r="${ref}"${s?` s="${s}"`:""}><v>${v}</v></c>`;
+  const T=(ref,v,s)=>`<c r="${ref}" t="inlineStr"${s?` s="${s}"`:""}><is><t xml:space="preserve">${xe(v)}</t></is></c>`;
+  const entero=v=>/^-?[1-9]\d{0,14}$|^0$/.test(String(v).trim());
+  let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="5" max="5" width="11" customWidth="1"/></cols><sheetData>`;
+  x+=`<row r="1">`+head.map((h,i)=>T(colLetra(i)+"1",h)).join("")+`</row>`;
+  rows.forEach((r,ri)=>{
+    const n=ri+2;x+=`<row r="${n}">`;
+    r.forEach((v,i)=>{
+      if(v===null||v===undefined||v==="")return;
+      const ref=colLetra(i)+n;
+      if(i===4&&/^\d{4}-\d\d-\d\d$/.test(v))x+=C(ref,serialFecha(v),1);                    // fecha
+      else if(i===6)x+=T(ref,String(v),4);                                                   // RUT: siempre texto
+      else if(i===10){const m=/^(-?\d+)(?:[.,](\d+))?\s*%$/.exec(String(v).trim());          // %Impuestos
+        x+=m?C(ref,parseFloat(m[1]+"."+(m[2]||"0"))/100,m[2]?3:2):T(ref,v);}
+      else if(typeof v==="number")x+=C(ref,r2(v));                                          // importes
+      else if((i===0||i===3||i===8)&&entero(v))x+=C(ref,String(v).trim());                  // códigos y número
+      else x+=T(ref,v);
+    });
+    x+=`</row>`;
+  });
+  return x+`</sheetData></worksheet>`;
+}
+function armarXlsx(hojas,estilos){
+  const ahora=new Date().toISOString().replace(/\.\d+Z$/,"Z"),n=hojas.length;
+  const files=[
+    ["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>`+
+      hojas.map((h,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")+
+      `<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`],
+    ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ["docProps/core.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dcterms:created xsi:type="dcterms:W3CDTF">${ahora}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${ahora}</dcterms:modified></cp:coreProperties>`],
+    ["docProps/app.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Microsoft Excel</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop><HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Worksheets</vt:lpstr></vt:variant><vt:variant><vt:i4>${n}</vt:i4></vt:variant></vt:vector></HeadingPairs><TitlesOfParts><vt:vector size="${n}" baseType="lpstr">`+
+      hojas.map(h=>`<vt:lpstr>${xe(h[0])}</vt:lpstr>`).join("")+`</vt:vector></TitlesOfParts><LinksUpToDate>false</LinksUpToDate><SharedDoc>false</SharedDoc><HyperlinksChanged>false</HyperlinksChanged><AppVersion>16.0300</AppVersion></Properties>`],
+    ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><fileVersion appName="xl" lastEdited="7" lowestEdited="7" rupBuild="30527"/><workbookPr defaultThemeVersion="202300"/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="19410" windowHeight="9585"/></bookViews><sheets>`+
+      hojas.map((h,i)=>`<sheet name="${xe(h[0])}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")+`</sheets><calcPr calcId="0"/></workbook>`],
+    ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`+
+      hojas.map((h,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")+
+      `<Relationship Id="rId${n+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>`+
+      `<Relationship Id="rId${n+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`+
+      `<Relationship Id="rId${n+3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>`],
+  ];
+  // Igual que Excel: textos en una tabla compartida (sharedStrings), dimension, vistas, márgenes
+  const sst=[],idx=new Map();let usos=0;
+  const ref=t=>{usos++;if(!idx.has(t)){idx.set(t,sst.length);sst.push(t);}return idx.get(t);};
+  hojas.forEach((h,i)=>files.push(["xl/worksheets/sheet"+(i+1)+".xml",hojaComoExcel(h[1],i===0,ref)]));
+  files.push(["xl/theme/theme1.xml",XL_THEME],["xl/styles.xml",estilos||ESTILOS_REPORTE],
+    ["xl/sharedStrings.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${usos}" uniqueCount="${sst.length}">`+
+      sst.map(t=>/^\s|\s$/.test(t)?`<si><t xml:space="preserve">${t}</t></si>`:`<si><t>${t}</t></si>`).join("")+`</sst>`]);
+  files[0][1]=files[0][1].replace("</Types>",`<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>`);
+  // orden de las partes como lo guarda Excel
+  const orden=["[Content_Types].xml","_rels/.rels","xl/workbook.xml","xl/_rels/workbook.xml.rels","xl/worksheets/","xl/theme/","xl/styles.xml","xl/sharedStrings.xml","docProps/core.xml","docProps/app.xml"];
+  const pos=nm=>orden.findIndex(o=>nm.startsWith(o));
+  files.sort((a,b)=>pos(a[0])-pos(b[0])||(a[0]<b[0]?-1:1));
+  // Excel pone un salto de línea después de la declaración XML
+  for(const f of files)f[1]=f[1].replace(/^(<\?xml[^>]*\?>)\r?\n?/,"$1\r\n");
+  return zip(files);
+}
+const NS_HOJA=`xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 xr3" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr2="http://schemas.microsoft.com/office/spreadsheetml/2015/revision2" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3"`;
+const colNum=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n;};
+// Convierte una hoja escrita con textos en línea a la forma en que la guarda Excel
+function hojaComoExcel(x,activa,ref){
+  // textos en línea -> índices de sharedStrings (Excel escribe r, s, t en ese orden)
+  x=x.replace(/<c r="([A-Z]+\d+)" t="inlineStr"( s="\d+")?><is><t(?: xml:space="preserve")?>([\s\S]*?)<\/t><\/is><\/c>/g,(m,r,s,t)=>`<c r="${r}"${s||""} t="s"><v>${ref(t)}</v></c>`);
+  // spans por fila y rango usado
+  let maxC=0,maxR=0;
+  x=x.replace(/<row r="(\d+)">([\s\S]*?)<\/row>/g,(m,r,cel)=>{
+    let a=0,b=0;for(const mm of cel.matchAll(/<c r="([A-Z]+)\d+"/g)){const c=colNum(mm[1]);if(!a||c<a)a=c;if(c>b)b=c;}
+    if(b>maxC)maxC=b;if(+r>maxR)maxR=+r;
+    return `<row r="${r}"${a?` spans="${a}:${b}"`:""} x14ac:dyDescent="0.25">${cel}</row>`;});
+  const dim=maxR?`A1:${colLetra(Math.max(maxC,1)-1)}${maxR}`:"A1";
+  x=x.replace(/<worksheet [^>]*>/,`<worksheet ${NS_HOJA}><dimension ref="${dim}"/>`);
+  if(x.includes("<sheetViews>"))x=x.replace("<sheetView ",`<sheetView${activa?' tabSelected="1"':""} `);
+  else x=x.replace(`<dimension ref="${dim}"/>`,`<dimension ref="${dim}"/><sheetViews><sheetView${activa?' tabSelected="1"':""} workbookViewId="0"/></sheetViews>`);
+  x=x.replace("</sheetViews>",`</sheetViews><sheetFormatPr defaultRowHeight="15" x14ac:dyDescent="0.25"/>`);
+  return x.replace("</sheetData>",`</sheetData><pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>`);
+}
+// Hoja simple a partir de filas (arrays). tipos por columna: s=texto, n=entero, m=importe, d=fecha ISO
+function hojaSimple(header,rows,tipos){
+  let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>`;
+  header.forEach((h,i)=>{let w=String(h).length;for(let j=0;j<Math.min(rows.length,300);j++){const v=rows[j][i];w=Math.max(w,v==null?0:String(v).length);}x+=`<col min="${i+1}" max="${i+1}" width="${Math.min(70,w+3)}" customWidth="1"/>`;});
+  x+=`</cols><sheetData><row r="1">`+header.map((h,i)=>`<c r="${colLetra(i)}1" t="inlineStr" s="1"><is><t>${xe(h)}</t></is></c>`).join("")+`</row>`;
+  rows.forEach((r,ri)=>{
+    const n=ri+2;x+=`<row r="${n}">`;
+    r.forEach((v,i)=>{
+      if(v===null||v===undefined||v==="")return;
+      const ref=colLetra(i)+n,t=tipos[i];
+      if(t==="d"&&/^\d{4}-\d\d-\d\d$/.test(v))x+=`<c r="${ref}" s="5"><v>${serialFecha(v)}</v></c>`;
+      else if(t==="n"&&/^-?\d+$/.test(String(v)))x+=`<c r="${ref}"><v>${v}</v></c>`;
+      else if(t==="m"&&typeof v==="number")x+=`<c r="${ref}" s="2"><v>${r2(v)}</v></c>`;
+      else x+=`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`;
+    });
+    x+=`</row>`;
+  });
+  return x+`</sheetData></worksheet>`;
+}
+</script>
+</body>
+</html>

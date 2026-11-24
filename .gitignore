@@ -1,0 +1,13 @@
+# Datos del usuario (credencial DPAPI, base de pruebas, configuración con email, registro)
+datos/
+*.db
+*.bin
+*.log
+
+# Binarios y salida de compilación
+*.exe
+*.old.exe
+fuentes/dist/
+/Herramientas_HiOffice.html
+# Lo genera build.js y lo embebe //go:embed
+fuentes/src/goapp/Herramientas_HiOffice.html

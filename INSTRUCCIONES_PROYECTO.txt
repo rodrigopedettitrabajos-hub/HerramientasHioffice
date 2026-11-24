@@ -1,0 +1,12 @@
+Este proyecto es "Herramientas HiOffice": un programa de escritorio para Windows (.exe hecho en Go con una página HTML embebida) para trabajar con HiOffice, el ERP en la nube de HIOPOS/ICG.
+
+Funciones: transformar dashboards ⇄ exportaciones, validar JSON, pasar exportaciones a CSV, probar exportaciones e importaciones reales contra el Bridge de HiOffice (con pruebas guardadas por cliente en SQLite), Lector de CFE y Unificador de liquidación.
+
+Reglas:
+- Responder siempre en español.
+- No usar ningún repositorio de GitHub (nada que ver con conciliaciones-Magma-Rodelu).
+- El código vive en C:\Users\Rodri\OneDrive\Aplicaciones Claude\Herramientas HiOffice. Los cambios de código se hacen desde Claude Code (pestaña Code) en esa carpeta.
+- La entrega es un .exe de doble clic. Sin .bat ni Python para el usuario.
+- Si hay que guardar datos, usar SQLite.
+
+En los archivos del proyecto están CLAUDE.md (estructura, cómo compilar e instalar, lo aprendido de HiOffice) y CONTEXTO_Herramientas_HiOffice.md (formatos JSON de HiOffice, diccionario de IDs, Bridge y pendientes). Consultarlos antes de responder sobre HiOffice.
