@@ -27,9 +27,10 @@ jobs:
       - name: Compilar y publicar
         env:
           GH_TOKEN: ${{ github.token }}
-          NOTAS: ${{ github.event.head_commit.message }}
         run: |
-          TAG="v$(date -u +%Y.%m.%d)-${{ github.run_number }}"
+          TAG="V1.$(printf %04d ${{ github.run_number }})"   # V1.0001, V1.0002…
           cd fuentes/src/goapp
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui -X main.version=$TAG" -o Herramientas_HiOffice.exe .
-          gh release create "$TAG" Herramientas_HiOffice.exe ../../dist/Herramientas_HiOffice.html --title "$TAG" --notes "$NOTAS"
+          # Novedades = mensaje del commit sin las líneas de firma
+          git log -1 --format=%B | grep -vE '^(Co-[Aa]uthored-[Bb]y:|Claude-Session:|-{3,}\s*$)' > notas.txt
+          gh release create "$TAG" Herramientas_HiOffice.exe ../../dist/Herramientas_HiOffice.html --title "$TAG" --notes-file notas.txt

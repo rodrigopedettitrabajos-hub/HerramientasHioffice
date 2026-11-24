@@ -7,7 +7,9 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -62,7 +64,9 @@ func latestRelease() (tag, url string, err error) {
 	return r.Tag, url, nil
 }
 
-func newRelease() bool { mu.Lock(); defer mu.Unlock(); return nueva.url != "" }
+func newRelease() bool { return nuevaTag() != "" }
+
+func nuevaTag() string { mu.Lock(); defer mu.Unlock(); return nueva.tag }
 
 // Baja la versión publicada y la deja en lugar del .exe actual (que pasa a .old.exe, como al instalar a mano).
 func applyRelease() error {
@@ -100,4 +104,33 @@ func applyRelease() error {
 	}
 	log.Printf("Actualizado de %s a %s", version, tag)
 	return nil
+}
+
+var releasesAPI = "https://api.github.com/repos/rodrigopedettitrabajos-hub/HerramientasHioffice/releases?per_page=20"
+
+// Quita del texto de la versión las líneas de firma de los commits.
+var reFirma = regexp.MustCompile(`(?m)^(Co-[Aa]uthored-[Bb]y:|Claude-Session:|-{3,}\s*$).*\n?`)
+
+// Lista de versiones publicadas con sus novedades (para el botón "Novedades").
+func handleNovedades(w http.ResponseWriter, r *http.Request) {
+	resp, err := client.Get(releasesAPI)
+	if err != nil {
+		writeJSON(w, 200, map[string]string{"error": "No se pudo consultar GitHub: " + err.Error()})
+		return
+	}
+	defer resp.Body.Close()
+	var rs []struct {
+		Tag   string `json:"tag_name"`
+		Fecha string `json:"published_at"`
+		Notas string `json:"body"`
+	}
+	if resp.StatusCode != 200 || json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&rs) != nil {
+		writeJSON(w, 200, map[string]string{"error": "GitHub respondió " + resp.Status})
+		return
+	}
+	out := []map[string]string{}
+	for _, x := range rs {
+		out = append(out, map[string]string{"tag": x.Tag, "fecha": x.Fecha, "notas": strings.TrimSpace(reFirma.ReplaceAllString(x.Notas, ""))})
+	}
+	writeJSON(w, 200, map[string]any{"actual": version, "versiones": out})
 }

@@ -156,7 +156,7 @@ func handlePing(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 	// Sin cabeceras CORS: otras webs no pueden leer el token.
 	writeJSON(w, 200, map[string]any{"ok": true, "app": appID, "token": token, "version": 2, "exe": true,
-		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "appVersion": version, "db": db != nil})
+		"dataDir": dataDir, "secrets": secretsSupported(), "update": updateAvailable(), "appVersion": version, "nueva": nuevaTag(), "db": db != nil})
 }
 
 type relayReq struct {
@@ -486,6 +486,7 @@ func main() {
 	mux.HandleFunc("/__helper/restart", guard(handleRestart, true))
 	mux.HandleFunc("/__helper/db", guard(handleDB, true))
 	mux.HandleFunc("/__helper/migrate", guard(handleMigrate, true))
+	mux.HandleFunc("/__helper/novedades", guard(handleNovedades, true))
 	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	addr := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	log.Printf("Herramientas HiOffice en %s (datos: %s)", addr, dataDir)

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -44,5 +45,12 @@ func TestReleaseYActualizacion(t *testing.T) {
 	}
 	if b, _ := os.ReadFile(exePath); string(b) != "MZnuevo" {
 		t.Fatal(string(b))
+	}
+}
+
+func TestNovedadesSinFirmas(t *testing.T) {
+	n := "Título (#3)\n\n* Cambio uno\n\nCo-Authored-By: X <x@y>\nClaude-Session: https://z\n\n---------\n\nCo-authored-by: Claude <c@d>"
+	if got := strings.TrimSpace(reFirma.ReplaceAllString(n, "")); got != "Título (#3)\n\n* Cambio uno" {
+		t.Fatalf("%q", got)
 	}
 }

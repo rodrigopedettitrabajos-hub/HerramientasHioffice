@@ -52,7 +52,7 @@ Antes de compilar, comprobar la sintaxis de los `<script>` sin `type` con `new F
 
 ## Publicar y actualizar
 
-Cada merge a `main` que toque `fuentes/` corre `.github/workflows/publicar.yml`: prueba, compila con `-X main.version=<etiqueta>` y publica el `.exe` como versión en GitHub. El programa publicado revisa al abrir (y cada 6 h) la última versión; si hay otra, aparece el aviso y **↻ Reiniciar y actualizar** la baja, deja la actual como `.old.exe` y reabre. Las compilaciones locales (versión `dev`) no se actualizan solas.
+Cada merge a `main` que toque `fuentes/` corre `.github/workflows/publicar.yml`: prueba, compila con `-X main.version=V1.NNNN` (número de corrida del workflow, pedido de Rodrigo) y publica el `.exe` como versión en GitHub. Las novedades de cada versión son el mensaje del commit de `main` (título del PR y su lista), sin las firmas: escribirlo pensando en el usuario. En el programa, **★ Novedades** las lista y se abre sola la primera vez después de actualizar. El programa publicado revisa al abrir (y cada 6 h) la última versión; si hay otra, aparece el aviso y **↻ Reiniciar y actualizar** la baja, deja la actual como `.old.exe` y reabre. Las compilaciones locales (versión `dev`) no se actualizan solas.
 La clave del socio de Migrate no va en el exe (el repo es público): cada usuario la escribe una vez en "Traer desde Migrate" y queda cifrada con DPAPI.
 
 ## Instalar una versión nueva a mano
