@@ -140,7 +140,7 @@ input[type=file]{display:none}
 
 <div class="modal-bg" id="mig">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="migTit">
-    <h3 id="migTit">Traer CFE emitidos desde Migrate</h3>
+    <h3 style="display:flex;align-items:center;gap:8px"><span id="migTit" style="flex:1">Traer CFE emitidos desde Migrate</span><button id="migCerrar">Cerrar</button></h3>
     <div class="body" id="migForm">
       <label class="lbl" for="migCod" style="display:block">Código de integración</label><input type="text" id="migCod" inputmode="numeric" autocomplete="off">
       <label class="lbl" for="migCk" style="display:block">Clave de acceso</label><input type="password" id="migCk" autocomplete="off">
@@ -151,7 +151,7 @@ input[type=file]{display:none}
       <p class="note" id="migMsg" role="status"></p>
     </div>
     <div class="body" id="migSuc" style="display:none"></div>
-    <div class="foot"><span class="spacer"></span><button id="migCerrar">Cerrar</button><button class="primary" id="migOk">Traer</button></div>
+    <div class="foot"><span class="spacer"></span><button class="primary" id="migOk">Traer</button></div>
   </div>
 </div>
 
