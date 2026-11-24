@@ -320,7 +320,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <div id="novList"></div>
 </div></div>
 <div class="modal-bg hidden" id="cfgModal"><div class="modal">
-<h2>Configuración</h2>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><h2 style="margin:0;flex:1">Configuración</h2><button class="sec" id="cfCancel">Cerrar</button></div>
 <p style="font-size:13px;color:var(--muted);margin:0 0 14px" id="cfIntro">Datos de tu cuenta de CloudLicense para conectarte al Bridge de HiOffice. Se guardan en la carpeta <b>datos</b>, junto al programa.</p>
 <div class="grid">
 <label>Email de CloudLicense<input type="text" id="cfEmail" autocomplete="username"></label>
@@ -331,7 +331,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <label class="check"><input type="checkbox" id="cfAuto"><span>Conectar automáticamente al abrir</span></label>
 <details style="margin-top:10px"><summary>Avanzado</summary><div class="grid" style="margin-top:8px"><label>Servidor de login<input type="text" id="cfHost" value="https://cloudlicense.icg.eu"></label></div></details>
 <div id="cfMsg"></div>
-<div class="btns" style="margin-top:16px"><button id="cfSave">Guardar</button><button class="sec" id="cfCancel">Ahora no</button><button class="sec" id="cfForget" style="margin-left:auto">Olvidar contraseña</button></div>
+<div class="btns" style="margin-top:16px"><button id="cfSave">Guardar</button><button class="sec" id="cfForget" style="margin-left:auto">Olvidar contraseña</button></div>
 </div></div>
 </main>
 
