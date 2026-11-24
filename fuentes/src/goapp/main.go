@@ -68,6 +68,7 @@ func handleRestart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := applyRelease(); err != nil {
+		log.Printf("No se pudo actualizar: %v", err)
 		writeJSON(w, 200, map[string]string{"error": "No se pudo bajar la versión nueva: " + err.Error()})
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	neturl "net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -15,6 +16,10 @@ import (
 )
 
 var version = "dev" // el workflow pone la etiqueta de la versión con -ldflags "-X main.version=..."
+
+// Cliente propio: las descargas de GitHub redirigen a otro dominio, y aquí no viajan credenciales
+// (el cliente del relay sólo sigue redirecciones a hosts permitidos).
+var ghClient = &http.Client{Timeout: 5 * time.Minute, Transport: client.Transport}
 
 var releaseAPI = "https://api.github.com/repos/rodrigopedettitrabajos-hub/HerramientasHioffice/releases/latest"
 
@@ -38,7 +43,7 @@ func watchReleases() {
 }
 
 func latestRelease() (tag, url string, err error) {
-	resp, err := client.Get(releaseAPI)
+	resp, err := ghClient.Get(releaseAPI)
 	if err != nil {
 		return "", "", err
 	}
@@ -76,8 +81,13 @@ func applyRelease() error {
 	if url == "" || exePath == "" {
 		return nil
 	}
-	resp, err := client.Get(url)
+	resp, err := ghClient.Get(url)
 	if err != nil {
+		log.Printf("Descarga de %s: %v", tag, err)
+		var ue *neturl.Error
+		if errors.As(err, &ue) {
+			err = ue.Err // sin el enlace firmado de GitHub, que ocupa todo el aviso
+		}
 		return err
 	}
 	defer resp.Body.Close()
@@ -113,7 +123,7 @@ var reFirma = regexp.MustCompile(`(?m)^(Co-[Aa]uthored-[Bb]y:|Claude-Session:|-{
 
 // Lista de versiones publicadas con sus novedades (para el botón "Novedades").
 func handleNovedades(w http.ResponseWriter, r *http.Request) {
-	resp, err := client.Get(releasesAPI)
+	resp, err := ghClient.Get(releasesAPI)
 	if err != nil {
 		writeJSON(w, 200, map[string]string{"error": "No se pudo consultar GitHub: " + err.Error()})
 		return
