@@ -124,8 +124,8 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </head>
 <body>
 <main>
-<div class="topbar"><h1>Herramientas HiOffice</h1><div class="acts"><button class="sec" id="btnTema" title="Cambiar entre modo claro y oscuro">🌓 Claro/oscuro</button><button class="sec hidden" id="btnConfig">⚙ Configuración</button><button class="sec hidden" id="btnRestart" title="Cierra el programa y lo vuelve a abrir con la versión que haya en la carpeta">↻ Reiniciar y actualizar</button><button class="sec hidden" id="btnQuit">Cerrar herramienta</button></div></div>
-<div id="updBanner" class="msg ok hidden" style="margin:0 0 12px"><b>Hay una versión nueva del programa.</b> Pulsa “↻ Reiniciar y actualizar” para usarla.</div>
+<div class="topbar"><h1>Herramientas HiOffice</h1><div class="acts"><button class="sec" id="btnTema" title="Cambiar entre modo claro y oscuro">🌓 Claro/oscuro</button><button class="sec hidden" id="btnNov" title="Qué trajo cada versión">★ Novedades</button><button class="sec hidden" id="btnConfig">⚙ Configuración</button><button class="sec hidden" id="btnRestart" title="Cierra el programa y lo vuelve a abrir con la versión que haya en la carpeta">↻ Reiniciar y actualizar</button><button class="sec hidden" id="btnQuit">Cerrar herramienta</button></div></div>
+<div id="updBanner" class="msg ok hidden" style="margin:0 0 12px"><b>Hay una versión nueva del programa<span id="updVer"></span>.</b> Pulsa “↻ Reiniciar y actualizar” para usarla. <a href="#" id="updNov">Ver novedades</a></div>
 <p class="lead" id="leadTxt">¿Qué quieres hacer?</p>
 <div class="tab home" id="tab-home">
 <h2 class="grp">HiOffice</h2>
@@ -314,6 +314,12 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <p>El programa sólo escucha en tu equipo y sólo reenvía llamadas a servidores de HiOffice (icg.eu / hiopos.com).</p></div></details>
 </section>
 </div>
+<div class="modal-bg hidden" id="novModal"><div class="modal">
+<h2>Novedades</h2>
+<p style="font-size:13px;color:var(--muted);margin:0 0 14px" id="novVer"></p>
+<div id="novList"></div>
+<div class="btns" style="margin-top:16px"><button class="sec" id="novCerrar">Cerrar</button></div>
+</div></div>
 <div class="modal-bg hidden" id="cfgModal"><div class="modal">
 <h2>Configuración</h2>
 <p style="font-size:13px;color:var(--muted);margin:0 0 14px" id="cfIntro">Datos de tu cuenta de CloudLicense para conectarte al Bridge de HiOffice. Se guardan en la carpeta <b>datos</b>, junto al programa.</p>
@@ -1706,7 +1712,11 @@ async function onHelperReady(info){
   savedRenderAll();
   $('btnConfig').classList.remove('hidden'); $('btnQuit').classList.remove('hidden'); $('btnRestart').classList.remove('hidden');
   $('helpPy').classList.add('hidden');
-  const showUpd = j => { const u = !!(j && j.update); $('updBanner').classList.toggle('hidden', !u); $('btnRestart').classList.toggle('sec', !u); };
+  const showUpd = j => { const u = !!(j && j.update); $('updBanner').classList.toggle('hidden', !u); $('btnRestart').classList.toggle('sec', !u); $('updVer').textContent = j && j.nueva ? ' (' + j.nueva + ')' : ''; };
+  const ver = info.appVersion || 'dev';
+  $('btnNov').textContent = '★ Novedades · ' + ver; $('btnNov').classList.remove('hidden');
+  // Después de actualizarse, muestra una vez lo nuevo de esta versión.
+  try { const vista = localStorage.getItem('hio.version'); localStorage.setItem('hio.version', ver); if (vista && vista !== ver && ver !== 'dev') openNovedades(); } catch(e){}
   showUpd(HELPER.info);
   setInterval(() => fetch('/__helper/ping', { cache: 'no-store' }).then(r => r.json()).then(showUpd).catch(() => {}), 20000);
   // Nombres de columnas guardados en archivo (y migración de los que había en el navegador)
@@ -1721,6 +1731,20 @@ async function onHelperReady(info){
   if (CFG.autoConnect && CFG.hasPassword)connectWithConfig('');   // conecta en segundo plano; se queda en Inicio
 }
 $('btnConfig').onclick = () => openConfig(false);
+async function openNovedades(){
+  $('novModal').classList.remove('hidden');
+  const ver = (HELPER.info && HELPER.info.appVersion) || 'dev';
+  $('novVer').textContent = 'Versión instalada: ' + ver + (ver === 'dev' ? ' (compilada a mano: no se actualiza sola)' : '');
+  $('novList').innerHTML = '<p>Cargando…</p>';
+  try {
+    const j = await (await fetch('/__helper/novedades', { headers: { 'X-Helper-Token': HELPER.token }, cache: 'no-store' })).json();
+    if (j.error) throw new Error(j.error);
+    $('novList').innerHTML = j.versiones.length ? j.versiones.map(v => '<div style="margin:0 0 14px"><b>' + esc(v.tag) + '</b>' + (v.tag === ver ? ' <span class="pill ok">instalada</span>' : '') + ' <span style="font-size:12px;color:var(--muted)">' + esc((v.fecha || '').slice(0, 10)) + '</span><div style="white-space:pre-wrap;font-size:13px;margin-top:4px">' + esc(v.notas || '') + '</div></div>').join('') : '<p>Todavía no hay versiones publicadas.</p>';
+  } catch(e){ $('novList').innerHTML = '<div class="msg warn">No se pudieron cargar las novedades: ' + esc(e.message) + '</div>'; }
+}
+$('btnNov').onclick = openNovedades;
+$('updNov').onclick = e => { e.preventDefault(); openNovedades(); };
+$('novCerrar').onclick = () => $('novModal').classList.add('hidden');
 $('btnRestart').onclick = async () => {
   const b = $('btnRestart'); b.disabled = true; b.textContent = 'Reiniciando…';
   try {
