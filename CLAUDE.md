@@ -21,16 +21,15 @@ Herramientas_HiOffice.html    la misma página, para abrir suelta (sin Bridge)
 LEEME.txt                     copia de fuentes/src/LEEME_usuario.txt
 datos/                        configuracion.json, credencial.bin (DPAPI), registro.log, pruebas.db
 fuentes/
-  build.js                    arma el HTML (reemplaza a build.py: el Python del PC está roto)
+  build.js                    arma el HTML
   dist/                       salida de la compilación
-  tests/                      pruebas en Node
+  tests/                      prueba_csv.js (node --test, sin dependencias)
   src/
     page.template.html        TODA la interfaz (HTML + CSS + JS, sin dependencias externas)
     plantilla_exportacion.json, plantilla_informe.json, diccionario_nombres.json
     herramientas/             lector_cfe.html, unificador_liquidacion.html (se muestran en iframe)
     LEEME_usuario.txt
-    goapp/                    main.go (servidor local + Bridge proxy), db.go (SQLite), secret_*.go
-    mock/                     mock_bridge.py (Bridge falso, histórico)
+    goapp/                    main.go (servidor local + Bridge proxy), db.go (SQLite), secret_*.go, main_test.go
 ```
 
 ## Compilar
@@ -47,6 +46,7 @@ Antes de compilar, comprobar la sintaxis de los `<script>` sin `type` con `new F
 
 ## Probar
 
+- Pruebas automáticas: `cd fuentes && node --test tests/prueba_csv.js` y `cd fuentes/src/goapp && go test ./...`.
 - Exe de prueba con `HIO_PORT=8790`, `HIO_NO_BROWSER=1`, `HIO_DATA_DIR=<carpeta temporal>` para no pisar el del usuario (puerto 8765).
 - Abrirlo en el navegador integrado (`http://127.0.0.1:8790/`). Al terminar, cerrar el proceso de `fuentes\dist`.
 

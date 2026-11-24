@@ -761,8 +761,8 @@ setupDrop('dropSrc','fileSrc',(txt,fname) => {
   mode = A.isExport ? 'toReport' : 'toExport';
   TE = DEF_EXP; TD = DEF_DASH;
   let html = '<table class="info" style="margin-top:12px"><tr><td>Archivo</td><td>'+esc(fname)+'</td></tr>'
-    + '<tr><td>Detectado</td><td><b>'+(A.isExport ? 'Exportación' : 'Dashboard / informe')+'</b> · tipo '+A.type+'</td></tr>'
-    + '<tr><td>Nombre</td><td>'+esc(A.name||'(sin nombre)')+' · ID '+A.id+'</td></tr>'
+    + '<tr><td>Detectado</td><td><b>'+(A.isExport ? 'Exportación' : 'Dashboard / informe')+'</b> · tipo '+esc(A.type)+'</td></tr>'
+    + '<tr><td>Nombre</td><td>'+esc(A.name||'(sin nombre)')+' · ID '+esc(A.id)+'</td></tr>'
     + (A.profile ? '<tr><td>Perfil</td><td>'+esc(A.profile)+'</td></tr>' : '')
     + '<tr><td>Bloques</td><td>'+A.blocks.length+' ('+A.tables.length+' de tabla'+(A.globals.length?', '+A.globals.length+' de filtro global':'')+')</td></tr></table>';
   if (!A.tables.length) html += '<div class="msg warn">No hay bloques de tabla: sólo se pueden convertir JSON con una tabla.</div>';
@@ -770,7 +770,7 @@ setupDrop('dropSrc','fileSrc',(txt,fname) => {
   if (!A.tables.length) { $('secOpts').classList.add('hidden'); $('tplBox').classList.add('hidden'); return; }
   applyMode();
   $('blocks').innerHTML = '<div style="font-size:13px;color:var(--muted)">Bloque de tabla a convertir</div>' + A.tables.map((b,i) =>
-    '<label><input type="radio" name="blk" value="'+b.id+'"'+(i?'':' checked')+'> '+esc(b.name||'Bloque '+b.id)+' <span style="color:var(--muted)">· ID '+b.id+' · '+b.shown+' de '+b.columns+' columnas visibles</span></label>').join('');
+    '<label><input type="radio" name="blk" value="'+esc(b.id)+'"'+(i?'':' checked')+'> '+esc(b.name||'Bloque '+b.id)+' <span style="color:var(--muted)">· ID '+esc(b.id)+' · '+b.shown+' de '+b.columns+' columnas visibles</span></label>').join('');
   document.querySelectorAll('input[name=blk]').forEach(r => r.onchange = syncBlock);
 
   const ids = collectIds(J), next = (set, start) => { let n = start; while (set.has(n)) n++; return n; };
@@ -908,7 +908,7 @@ function renderPreview(){
     const meta = [c.isMetric ? 'Métrica ' + c.id : 'Atributo ' + c.id];
     if (c.total) meta.push('Σ'); if (!c.shown) meta.push('oculta');
     const tip = (r.src ? 'Nombre: ' + r.src + '\n' : '') + meta.join(' · ') + (c.formula ? '\nFórmula: ' + c.formula : '') + c.styles.map(s => '\nColor ' + s.color + ' si ' + s.cond).join('');
-    h += '<th class="' + (unk?'unk ':'') + (c.shown?'':'hid') + '" title="' + esc(tip) + '"><span class="lbl" ' + (c.subtitle ? '' : 'contenteditable="true" spellcheck="false" ') + 'data-key="' + keyOf(c) + '">' + esc(unk ? (c.isMetric?'Métrica #':'Atributo #') + c.id : r.name) + '</span>'
+    h += '<th class="' + (unk?'unk ':'') + (c.shown?'':'hid') + '" title="' + esc(tip) + '"><span class="lbl" ' + (c.subtitle ? '' : 'contenteditable="true" spellcheck="false" ') + 'data-key="' + esc(keyOf(c)) + '">' + esc(unk ? (c.isMetric?'Métrica #':'Atributo #') + c.id : r.name) + '</span>'
       + (c.formula ? ' <span title="' + esc(c.formula) + '">ƒ</span>' : '')
       + c.styles.map(s => '<span class="swatch" style="background:' + esc(s.color.slice(0,7)) + '"></span>').join('')
       + (showIds ? '<span class="meta">' + esc(meta.join(' · ')) + '</span>' : '') + '</th>';
@@ -944,7 +944,7 @@ function renderPreview(){
   if (unkVis) tags.push(unkVis + ' visibles sin nombre');
   $('pvTags').innerHTML = tags.map(t => '<span>' + esc(t) + '</span>').join('');
   $('pvSrc').textContent = PV.label;
-  $('pvFilter').innerHTML = M.conditions.length ? '<b>Filtro fijo del bloque</b> (' + M.conditions.length + ' condiciones):<ul>' + M.conditions.map(c => '<li>' + esc(attrName(c.attr) || 'Atributo #' + c.attr) + ' · operador ' + c.op + (c.value ? ' · valor “' + esc(c.value) + '”' : '') + (c.value2 ? ' / “' + esc(c.value2) + '”' : '') + (c.neg ? ' · negado' : '') + (c.ask ? ' · <b>se pregunta al ejecutar</b>' : '') + '</li>').join('') + '</ul>' : '';
+  $('pvFilter').innerHTML = M.conditions.length ? '<b>Filtro fijo del bloque</b> (' + M.conditions.length + ' condiciones):<ul>' + M.conditions.map(c => '<li>' + esc(attrName(c.attr) || 'Atributo #' + c.attr) + ' · operador ' + esc(c.op) + (c.value ? ' · valor “' + esc(c.value) + '”' : '') + (c.value2 ? ' / “' + esc(c.value2) + '”' : '') + (c.neg ? ' · negado' : '') + (c.ask ? ' · <b>se pregunta al ejecutar</b>' : '') + '</li>').join('') + '</ul>' : '';
   renderConfig();
 }
 function renderConfig(){
@@ -953,9 +953,9 @@ function renderConfig(){
   for (const c of M.columns){
     const k = keyOf(c), r = resolve(c), b = baseName(k);
     const suggestion = c.jsonName || AUTO[k] || DICT[k] || '';
-    h += '<tr class="' + (c.shown ? '' : 'off') + '"><td>' + c.pos + '</td><td>' + (c.isMetric ? 'Métrica' : 'Atributo') + ' ' + c.id + '</td><td>' + (c.shown ? 'Sí' : 'Oculta') + '</td>'
+    h += '<tr class="' + (c.shown ? '' : 'off') + '"><td>' + esc(c.pos) + '</td><td>' + (c.isMetric ? 'Métrica' : 'Atributo') + ' ' + esc(c.id) + '</td><td>' + (c.shown ? 'Sí' : 'Oculta') + '</td>'
       + '<td>' + (r.name ? esc(r.name) : '<i style="color:var(--muted)">sin nombre</i>') + '<div class="src">' + esc(r.src) + '</div></td>'
-      + '<td><input data-key="' + k + '" value="' + esc(USER[k] || '') + '" placeholder="' + esc(suggestion || 'Escribe el nombre…') + '"></td></tr>';
+      + '<td><input data-key="' + esc(k) + '" value="' + esc(USER[k] || '') + '" placeholder="' + esc(suggestion || 'Escribe el nombre…') + '"></td></tr>';
   }
   $('cfgTable').innerHTML = h + '</tbody>';
   $('cfgTable').querySelectorAll('input').forEach(inp => {
@@ -1250,7 +1250,15 @@ $('brLogout').onclick = async () => {
   $('brSession').innerHTML = '<div class="msg">Sesión cerrada.</div>';
   SES.customerId = ''; $('brClient').classList.add('hidden'); savedRenderAll();
 };
-window.addEventListener('pagehide', () => { if (SES.token && !HELPER.on) { try { fetch(SES.base + '/ErpCloud/session/logout', { headers: authH(), keepalive: true }); } catch(e){} } });
+// Al cerrar o recargar la pestaña se cierra la sesión del Bridge (con el .exe, a través del reenvío).
+window.addEventListener('pagehide', () => {
+  if (!SES.token) return;
+  const url = SES.base + '/ErpCloud/session/logout';
+  try {
+    if (HELPER.on) fetch('/__helper/relay', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', 'X-Helper-Token': HELPER.token }, body: JSON.stringify({ method: 'GET', url, headers: authH() }) });
+    else fetch(url, { headers: authH(), keepalive: true });
+  } catch(e){}
+});
 
 // ================= Bridge: exportación =================
 const pad = n => String(n).padStart(2, '0');
@@ -1487,7 +1495,7 @@ $('imRun').onclick = async () => {
         const cls = sid === 3 ? 'ok' : sid === 2 ? 'err' : '';
         let h = '<div class="doc"><div class="doc-h"><b>' + esc(s.name || 'Importación') + '</b> <span class="src">' + esc(s.uuid || '') + '</span></div>';
         h += '<div class="msg ' + cls + '">' + (st ? '<b>' + esc(st.status || STATUS[sid] || ('estado ' + sid)) + '</b>' : 'Esperando estado…') + (sid === 1 || !st ? ' <span class="spin"></span>' : '') + '</div>';
-        if (st) h += '<div class="tags"><span>Insertados: ' + (st.recordsInserted ?? '–') + '</span><span>Actualizados: ' + (st.recordsUpdated ?? '–') + '</span><span>Registros procesados: ' + (st.filesRecordsProcessed ?? '–') + '</span><span>Archivos: ' + (st.filesProcessed ?? '–') + ' / ' + (st.filesToProcess ?? '–') + '</span><span>Errores: ' + (st.errors ?? '–') + '</span>'
+        if (st) h += '<div class="tags"><span>Insertados: ' + esc(st.recordsInserted ?? '–') + '</span><span>Actualizados: ' + esc(st.recordsUpdated ?? '–') + '</span><span>Registros procesados: ' + esc(st.filesRecordsProcessed ?? '–') + '</span><span>Archivos: ' + esc(st.filesProcessed ?? '–') + ' / ' + esc(st.filesToProcess ?? '–') + '</span><span>Errores: ' + esc(st.errors ?? '–') + '</span>'
           + (st.startTimestamp && st.endTimestamp ? '<span>Duración: ' + Math.max(0, Math.round((st.endTimestamp - st.startTimestamp)/1000)) + ' s</span>' : '') + '</div>';
         if (s.errors && s.errors.length) h += '<ul class="checks">' + s.errors.map(e => '<li class="chk error"><span class="ic">✗</span><span class="ar">' + (e.errorTimestamp ? new Date(e.errorTimestamp).toLocaleString() : '') + '</span>' + esc((e.errorCode ? e.errorCode + ' · ' : '') + (e.errorText || '')) + '</li>').join('') + '</ul>';
         if (sid === 3 && !(st.recordsInserted || st.recordsUpdated)) h += '<div class="msg warn"><b>HiOffice la aceptó pero no insertó ni actualizó ningún registro.</b> Suele pasar cuando las filas no encuentran a qué aplicarse:<ul>'
@@ -1577,7 +1585,7 @@ function savedRender(tipo){
   $(p + 'SavedSel').onchange = async () => {
     const id = +$(p + 'SavedSel').value;
     if (!id) { S.cur = null; savedRender(tipo); return; }
-    try { const t = await dbCall('get', { id }); S.cur = id; await S.apply(t); savedRender(tipo); }
+    try { const t = await dbCall('get', { id }); S.cur = id; await S.apply(t); S.sig = await savedSig(tipo); savedRender(tipo); }
     catch(e){ $(p + 'SaveMsg').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
   };
   if (cur) $(p + 'SavedDel').onclick = async () => {
@@ -1592,7 +1600,7 @@ function savedRender(tipo){
       if (ex && ex.id !== S.cur && !confirm('Ya hay una prueba “' + ex.nombre + '” en este cliente. ¿Reemplazarla?')) return;
       const d = await S.collect();
       const r = await dbCall('save', Object.assign({ customerId: SES.customerId, tipo, nombre }, d));
-      S.cur = r.id; await savedLoad(tipo);
+      S.cur = r.id; S.sig = sigOf(d); await savedLoad(tipo);
       $(p + 'SaveMsg').innerHTML = '<div class="msg ok">Guardada en el cliente' + (d.archivo ? ', con el archivo ' + esc(d.archivo.name) : '') + '.</div>';
     } catch(e){ msg.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
   };
@@ -1615,16 +1623,20 @@ async function onClientLogin(email){
   savedRenderAll();
 }
 $('brClientName').onchange = async () => { try { await dbCall('saveClient', { customerId: SES.customerId, nombre: $('brClientName').value.trim() }); $('brClientInfo').textContent = 'Nombre guardado · ID de cliente ' + SES.customerId; } catch(e){ $('brClientInfo').textContent = e.message; } };
-// Anota en la prueba cargada el resultado de la última ejecución
-async function savedResult(tipo, outId){
-  const S = SAVED[tipo]; if (!S.cur || !HELPER.exe) return;
+// Firma de lo que hay en pantalla: sirve para saber si se ejecutó la prueba tal como está guardada
+const sigOf = d => JSON.stringify([d.config, d.archivo ? [d.archivo.name, d.archivo.data.length] : null]);
+async function savedSig(tipo){ try { return sigOf(await SAVED[tipo].collect()); } catch(e){ return ''; } }
+// Anota en la prueba cargada el resultado de la última ejecución (sólo si se ejecutó sin cambios respecto a lo guardado)
+async function savedResult(tipo, outId, sig){
+  const S = SAVED[tipo]; if (!S.cur || !HELPER.exe || !S.sig || sig !== S.sig) return;
   const m = $(outId).querySelector('.msg'); if (!m) return;
   const st = m.classList.contains('ok') ? 'correcta' : m.classList.contains('err') ? 'error' : 'con avisos';
   try { await dbCall('result', { id: S.cur, resultado: st + ': ' + m.textContent.trim().slice(0, 180) }); await savedLoad(tipo); } catch(e){}
 }
 { const ex = $('exRun').onclick, im = $('imRun').onclick;
-  $('exRun').onclick = async () => { await ex(); savedResult('exportacion', 'exOut'); };
-  $('imRun').onclick = async () => { await im(); savedResult('importacion', 'imOut'); }; }
+  const conFirma = async (tipo, run, outId) => { const sig = SAVED[tipo].cur ? await savedSig(tipo) : ''; await run(); savedResult(tipo, outId, sig); };
+  $('exRun').onclick = () => conFirma('exportacion', ex, 'exOut');
+  $('imRun').onclick = () => conFirma('importacion', im, 'imOut'); }
 savedRenderAll();
 
 // ================= Modo programa (.exe): configuración, archivos, conexión automática =================

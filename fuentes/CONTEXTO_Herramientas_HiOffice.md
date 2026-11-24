@@ -55,7 +55,7 @@ Versiones anteriores ya reemplazadas (el usuario debe borrarlas si quedaron): `I
 ## 4. Código fuente (en `HiOffice_fuentes.zip`)
 
 ```
-build.py                         genera dist/Herramientas_HiOffice.html y compila el .exe (Go 1.22+)
+build.js                         genera dist/Herramientas_HiOffice.html y lo copia a src/goapp/ (node build.js .)
 src/page.template.html           la página completa con marcadores __TPL_EXPORT__, __TPL_DASH__, __DICT__
 src/plantilla_exportacion.json   valores por defecto de una exportación (sacados de "Exportación de Ventas - Facturas")
 src/plantilla_informe.json       valores por defecto de un informe (sacados de "Extracto Tesoreria 3.0")
@@ -63,11 +63,11 @@ src/diccionario_nombres.json     nombres de columnas incluidos en el programa
 src/goapp/main.go                servidor local, relay, almacenamiento, cierre automático
 src/goapp/secret_windows.go      DPAPI (CryptProtectData/CryptUnprotectData) y MessageBox de error
 src/goapp/secret_other.go        stub fuera de Windows (no recuerda contraseñas)
-src/mock/mock_bridge.py          Bridge simulado según la documentación (para pruebas)
-tests/*.js                       pruebas Playwright usadas (tienen rutas absolutas del ambiente viejo: ajustarlas)
+src/goapp/main_test.go           pruebas de la lista de servidores permitidos y de las redirecciones
+tests/prueba_csv.js              prueba del paso exportación -> CSV (node --test)
 ```
 
-Compilar: `python build.py` → `dist/`. El HTML se incrusta en el exe con `//go:embed`, por eso `build.py` copia la página a `src/goapp/` antes de compilar.
+Compilar: `node build.js .` y luego `go build` (ver CLAUDE.md). El HTML se incrusta en el exe con `//go:embed`, por eso `build.js` copia la página a `src/goapp/` antes de compilar.
 
 Compilación cruzada desde Linux: `GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H windowsgui"`.
 
@@ -240,7 +240,7 @@ UUID de importaciones por defecto (anexo UF8):
 ## 7. Cómo se probó
 
 - Transformaciones y validaciones con los 3 JSON reales: OK, incluida la ida y vuelta.
-- Bridge contra `mock_bridge.py`, que implementa los endpoints según la documentación (login correcto/incorrecto, export CSV+JSON, export con error 500, filtros de dashboard, importación con archivo/cuerpo terminando bien o con error): todo OK.
+- Bridge contra un Bridge simulado (`mock_bridge.py`, ya borrado del repo), que implementaba los endpoints según la documentación (login correcto/incorrecto, export CSV+JSON, export con error 500, filtros de dashboard, importación con archivo/cuerpo terminando bien o con error): todo OK.
 - El ayudante rechaza las peticiones sin token, otros hosts, `http` hacia icg.eu y una cabecera `Host` ajena.
 - El exe se probó compilado para Linux: configuración del primer uso, guardado en archivos, nombres leídos desde archivo, login, exportación, botón de cierre, apagado del proceso.
 - **No probado:** el `.exe` en Windows real (Wine falló en el contenedor), el cifrado DPAPI ("recordar contraseña") y **cualquier llamada al HiOffice real** (sin acceso de red ni credenciales desde la nube).
