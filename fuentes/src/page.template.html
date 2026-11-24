@@ -149,7 +149,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 
 
 <section>
-<h2><span class="n">1</span>JSON de origen</h2>
+<h2>JSON de origen</h2>
 <div class="drop" id="dropSrc"><b>Arrastra aquí el JSON (dashboard o exportación)</b> o haz clic para elegirlo<input type="file" id="fileSrc" accept=".json,application/json" hidden></div>
 <div id="srcInfo" class="hidden"></div>
 <details id="tplBox" class="hidden" style="margin-top:12px"><summary id="tplSummary"></summary>
@@ -160,7 +160,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </section>
 
 <section id="secOpts" class="hidden">
-<h2><span class="n">2</span>Opciones <span class="chip" id="dirChip"></span></h2>
+<h2>Opciones <span class="chip" id="dirChip"></span></h2>
 <div id="blocks" class="blocks"></div>
 <div class="grid" style="margin-top:10px">
 <label><span id="lblName">Nombre</span><input type="text" id="oName"></label>
@@ -226,13 +226,13 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 
 <div class="tab hidden cols" id="tab-csv">
 <section>
-<h2><span class="n">1</span>Archivo de origen</h2>
+<h2>Archivo de origen</h2>
 <p style="font-size:13px;color:var(--muted);margin:0 0 10px">Convierte el resultado de una exportación de HiOffice (el JSON con <code>data</code>, <code>columnNames</code>, <code>columnTypes</code>, aunque el archivo se llame .csv) en un CSV. También acepta un CSV para cambiarle columnas o separadores. Sirve de ejemplo de exportación o para armar el archivo de una importación (p. ej. de stock).</p>
 <div class="drop" id="dropCsv"><b>Arrastra aquí el archivo exportado</b> o haz clic para elegirlo<input type="file" id="fileCsv" accept=".json,.csv,.txt,application/json,text/csv" hidden></div>
 <div id="csvInfo"></div>
 </section>
 <section id="csvOpts" class="hidden">
-<h2><span class="n">2</span>Columnas y formato</h2>
+<h2>Columnas y formato</h2>
 <div class="row" style="margin-top:0"><label><input type="radio" name="csvUse" value="export" checked> Ejemplo de exportación (todas las columnas)</label><label><input type="radio" name="csvUse" value="import"> Para importación (eliges las columnas)</label></div>
 <div id="csvUseHelp" class="msg hidden">Marca sólo las columnas que pide la importación y ponles el nombre que espera HiOffice (ver la estructura del archivo de esa importación en el anexo de la UF8). La configuración se recuerda para la próxima vez que abras un archivo con las mismas columnas.</div>
 <div id="csvTablePick" class="hidden" style="margin-top:10px"><label>Tabla<select id="csvTable"></select></label></div>
@@ -255,8 +255,8 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </div>
 
 <div class="tab hidden cols" id="tab-bridge">
-<section>
-<h2><span class="n">1</span>Conexión</h2>
+<section class="wide">
+<h2>Conexión</h2>
 <div id="brMode" style="margin-bottom:10px"></div>
 <div class="grid">
 <label>Email de CloudLicense<input type="text" id="brEmail" autocomplete="username"></label>
@@ -271,7 +271,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </section>
 
 <section>
-<h2><span class="n">2</span>Probar una exportación</h2>
+<h2>Probar una exportación</h2>
 <div id="exSaved"></div>
 <div class="row"><label><input type="radio" name="exKind" value="table" checked> Por tabla (ID numérico)</label><label><input type="radio" name="exKind" value="dashboard"> Por dashboard (GUID)</label></div>
 <div class="grid" style="margin-top:8px">
@@ -288,7 +288,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 </section>
 
 <section>
-<h2><span class="n">3</span>Probar una importación</h2>
+<h2>Probar una importación</h2>
 <div id="imSaved"></div>
 <div class="msg warn" style="margin-top:10px">Ojo: una importación <b>escribe datos reales</b> en la base de HiOffice. Pruébala primero en un cliente de pruebas.</div>
 <div class="grid" style="margin-top:10px">
@@ -304,7 +304,7 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <div id="imOut"></div>
 </section>
 
-<section>
+<section class="wide">
 <details><summary>Registro de llamadas</summary>
 <p style="font-size:12px;color:var(--muted)">Se muestran sin contraseñas ni tokens.</p>
 <div style="overflow-x:auto"><table class="log"><tbody id="brLog"></tbody></table></div></details>
