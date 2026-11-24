@@ -12,6 +12,9 @@ Detalle completo (formatos JSON de HiOffice, diccionario de IDs, Bridge, pendien
 - Entrega: un **`.exe` de doble clic** (Go). Nada de `.bat` ni de Python para el usuario.
 - Si hay que guardar datos: **SQLite** (`modernc.org/sqlite`, Go puro, sin CGO).
 - No empezar cambios grandes sin el visto bueno del usuario.
+- Desarrollo: usar siempre el skill `anthropic-skills:ponytail` (el cambio más chico que resuelve la tarea).
+- Al terminar un cambio: PR a `main` y fusionarlo; eso publica la versión y se instala sola en todas las PCs. Por eso, probar antes de fusionar.
+- Nunca subir claves (repo y versiones públicos). Las de Migrate las escribe cada usuario en la app.
 
 ## Estructura
 
