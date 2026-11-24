@@ -1715,8 +1715,6 @@ async function onHelperReady(info){
   const showUpd = j => { const u = !!(j && j.update); $('updBanner').classList.toggle('hidden', !u); $('btnRestart').classList.toggle('sec', !u); $('updVer').textContent = j && j.nueva ? ' (' + j.nueva + ')' : ''; };
   const ver = info.appVersion || 'dev';
   $('btnNov').textContent = '★ Novedades · ' + ver; $('btnNov').classList.remove('hidden');
-  // Después de actualizarse, muestra una vez lo nuevo de esta versión.
-  try { const vista = localStorage.getItem('hio.version'); localStorage.setItem('hio.version', ver); if (vista && vista !== ver && ver !== 'dev') openNovedades(); } catch(e){}
   // Al abrir el programa, si GitHub tiene una versión nueva se instala sola (sólo el primer minuto, para no cortar un trabajo a medias).
   const abierto = Date.now(); let autoUpd = false;
   const checkUpd = j => { showUpd(j); if (j && j.nueva && !autoUpd && Date.now() - abierto < 60000) { autoUpd = true; $('btnRestart').onclick(); } };
