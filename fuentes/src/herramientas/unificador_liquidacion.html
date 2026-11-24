@@ -5,10 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unificador Hioffice</title>
 <style>
-  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2433; --muted:#667085; --line:#e3e6eb; --accent:#2563eb; --ok:#15803d; --new:#b45309; --err:#b91c1c; }
+  :root { --bg:#f5f6f8; --card:#fff; --text:#1d2433; --muted:#667085; --line:#e3e6eb; --accent:#2563eb; --accent-text:#fff; --ok:#15803d; --new:#b45309; --err:#b91c1c;
+    --off:#9aa4b2; --err-bg:#fee2e2; --th:#f0f2f5; --upd-bg:#dcfce7; --new-bg:#fef3c7; color-scheme:light; }
+  /* Tema oscuro: sigue al sistema salvo que el programa elija uno (data-theme) */
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) { --bg:#14171b; --card:#1c2026; --text:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --accent:#5b8def; --accent-text:#0b0f14; --ok:#7fd69f; --new:#f0c46a; --err:#f2877d; --off:#3a424d; --err-bg:#3a1717; --th:#253041; --upd-bg:#12301e; --new-bg:#33290f; color-scheme:dark; } }
+  :root[data-theme="dark"] { --bg:#14171b; --card:#1c2026; --text:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --accent:#5b8def; --accent-text:#0b0f14; --ok:#7fd69f; --new:#f0c46a; --err:#f2877d; --off:#3a424d; --err-bg:#3a1717; --th:#253041; --upd-bg:#12301e; --new-bg:#33290f; color-scheme:dark; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width:1000px; margin:0 auto; padding:24px 16px 48px; }
+  main { padding:24px 24px 48px; }
   h1 { font-size:22px; margin:0 0 4px; }
   p.sub { color:var(--muted); margin:0 0 20px; }
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
@@ -17,11 +21,11 @@
   .card h2 { font-size:15px; margin:0 0 4px; }
   .card small { color:var(--muted); display:block; margin-bottom:10px; }
   .fname { margin-top:8px; font-size:13px; color:var(--muted); word-break:break-all; }
-  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 18px; font-size:15px; cursor:pointer; }
-  button:disabled { background:#9aa4b2; cursor:not-allowed; }
+  button { background:var(--accent); color:var(--accent-text); border:0; border-radius:8px; padding:10px 18px; font-size:15px; cursor:pointer; }
+  button:disabled { background:var(--off); cursor:not-allowed; }
   .actions { margin:20px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
   .msg { padding:10px 14px; border-radius:8px; margin:12px 0; }
-  .msg.err { background:#fee2e2; color:var(--err); }
+  .msg.err { background:var(--err-bg); color:var(--err); }
   .stats { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width:140px; }
   .stat b { display:block; font-size:20px; }
@@ -29,11 +33,11 @@
   .tablewrap { overflow-x:auto; background:var(--card); border:1px solid var(--line); border-radius:10px; }
   table { border-collapse:collapse; width:100%; font-size:13px; }
   th, td { padding:6px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
-  th { background:#f0f2f5; position:sticky; top:0; }
+  th { background:var(--th); position:sticky; top:0; }
   td.num { font-family:Consolas, monospace; text-align:right; }
   .tag { font-size:11px; padding:2px 6px; border-radius:4px; font-weight:600; }
-  .tag.upd { background:#dcfce7; color:var(--ok); }
-  .tag.new { background:#fef3c7; color:var(--new); }
+  .tag.upd { background:var(--upd-bg); color:var(--ok); }
+  .tag.new { background:var(--new-bg); color:var(--new); }
 </style>
 </head>
 <body>
