@@ -6,16 +6,16 @@
 <title>Lector de CFE</title>
 <style>
 :root{
-  --bg:#f4f6f9; --panel:#ffffff; --ink:#1f2933; --muted:#5f6b7a; --line:#d9e0e8;
-  --head:#e4ebf3; --alt:#f7f9fc; --accent:#2563a8; --accent-ink:#ffffff; --neg:#b42318;
-  --sec:#d6e2f0; --hover:#eaf1fa; --th-hover:#d5e0ec; --g1:#fff7e6; --toolbar:#fffbf2;
+  --bg:#f4f4f4; --panel:#ffffff; --ink:#1f2933; --muted:#5f6b7a; --line:#d9e0e8;
+  --head:#efefef; --alt:#f7f9fc; --accent:#d71920; --accent-ink:#ffffff; --neg:#b42318;
+  --sec:#e6e6e6; --hover:#f6eeee; --th-hover:#e2e2e2; --g1:#fff7e6; --toolbar:#fffbf2;
   --ok:#15803d; --ok-bg:#f0faf3; --ok-line:#86c79a; --warn:#b45309; --warn-bg:#fffaf0; --warn-line:#f0c27a;
   --foot:#ebf0f7; --drop:#b8c6d6; --drop-bg:#fafcfe; --drag-bg:#eef5fd;
   color-scheme:light;
 }
 /* Tema oscuro: sigue al sistema salvo que el programa elija uno (data-theme) */
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b; --panel:#1c2026; --ink:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --head:#253041; --alt:#20252c; --accent:#5b8def; --accent-ink:#0b0f14; --neg:#f2877d; --sec:#24344a; --hover:#26303c; --th-hover:#2d3a4e; --g1:#33290f; --toolbar:#2a2414; --ok:#7fd69f; --ok-bg:#12301e; --ok-line:#2f6b45; --warn:#f0c46a; --warn-bg:#33290f; --warn-line:#6b5420; --foot:#20262e; --drop:#3a4452; --drop-bg:#181c21; --drag-bg:#1b2533; color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#14171b; --panel:#1c2026; --ink:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --head:#253041; --alt:#20252c; --accent:#5b8def; --accent-ink:#0b0f14; --neg:#f2877d; --sec:#24344a; --hover:#26303c; --th-hover:#2d3a4e; --g1:#33290f; --toolbar:#2a2414; --ok:#7fd69f; --ok-bg:#12301e; --ok-line:#2f6b45; --warn:#f0c46a; --warn-bg:#33290f; --warn-line:#6b5420; --foot:#20262e; --drop:#3a4452; --drop-bg:#181c21; --drag-bg:#1b2533; color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b; --panel:#1c2026; --ink:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --head:#253041; --alt:#20252c; --accent:#f0484e; --accent-ink:#ffffff; --neg:#f2877d; --sec:#24344a; --hover:#26303c; --th-hover:#2d3a4e; --g1:#33290f; --toolbar:#2a2414; --ok:#7fd69f; --ok-bg:#12301e; --ok-line:#2f6b45; --warn:#f0c46a; --warn-bg:#33290f; --warn-line:#6b5420; --foot:#20262e; --drop:#3a4452; --drop-bg:#181c21; --drag-bg:#1b2533; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171b; --panel:#1c2026; --ink:#e6e9ed; --muted:#9aa3ad; --line:#2e343c; --head:#253041; --alt:#20252c; --accent:#f0484e; --accent-ink:#ffffff; --neg:#f2877d; --sec:#24344a; --hover:#26303c; --th-hover:#2d3a4e; --g1:#33290f; --toolbar:#2a2414; --ok:#7fd69f; --ok-bg:#12301e; --ok-line:#2f6b45; --warn:#f0c46a; --warn-bg:#33290f; --warn-line:#6b5420; --foot:#20262e; --drop:#3a4452; --drop-bg:#181c21; --drag-bg:#1b2533; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:14px/1.4 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;display:flex;flex-direction:column}
