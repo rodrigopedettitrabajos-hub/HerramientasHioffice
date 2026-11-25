@@ -349,6 +349,8 @@ button.sec{background:var(--chip);color:var(--accent);font-weight:600;font-size:
 <script id="tool-liq" type="application/json">__TOOL_LIQ__</script>
 <script id="core">
 // ---- Lógica de conversión (sin DOM) ----
+// HiOffice no siempre informa recordsInserted/recordsUpdated: sin esos datos no se puede decir que no cambió nada.
+const sinCambios = st => !!st && (st.recordsInserted != null || st.recordsUpdated != null) && !(st.recordsInserted || st.recordsUpdated);
 const clone = o => JSON.parse(JSON.stringify(o));
 const uuid = () => (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID()
   : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); });
@@ -1530,15 +1532,15 @@ $('imRun').onclick = async () => {
         const cls = sid === 3 ? 'ok' : sid === 2 ? 'err' : '';
         let h = '<div class="doc"><div class="doc-h"><b>' + esc(s.name || 'Importación') + '</b> <span class="src">' + esc(s.uuid || '') + '</span></div>';
         h += '<div class="msg ' + cls + '">' + (st ? '<b>' + esc(st.status || STATUS[sid] || ('estado ' + sid)) + '</b>' : 'Esperando estado…') + (sid === 1 || !st ? ' <span class="spin"></span>' : '') + '</div>';
-        if (st) h += '<div class="tags"><span>Insertados: ' + esc(st.recordsInserted ?? '–') + '</span><span>Actualizados: ' + esc(st.recordsUpdated ?? '–') + '</span><span>Registros procesados: ' + esc(st.filesRecordsProcessed ?? '–') + '</span><span>Archivos: ' + esc(st.filesProcessed ?? '–') + ' / ' + esc(st.filesToProcess ?? '–') + '</span><span>Errores: ' + esc(st.errors ?? '–') + '</span>'
+        if (st) h += '<div class="tags">' + (st.recordsInserted != null ? '<span>Insertados: ' + esc(st.recordsInserted) + '</span>' : '') + (st.recordsUpdated != null ? '<span>Actualizados: ' + esc(st.recordsUpdated) + '</span>' : '') + '<span>Registros procesados: ' + esc(st.filesRecordsProcessed ?? '–') + '</span><span>Archivos: ' + esc(st.filesProcessed ?? '–') + ' / ' + esc(st.filesToProcess ?? '–') + '</span><span>Errores: ' + esc(st.errors ?? '–') + '</span>'
           + (st.startTimestamp && st.endTimestamp ? '<span>Duración: ' + Math.max(0, Math.round((st.endTimestamp - st.startTimestamp)/1000)) + ' s</span>' : '') + '</div>';
         if (s.errors && s.errors.length) h += '<ul class="checks">' + s.errors.map(e => '<li class="chk error"><span class="ic">✗</span><span class="ar">' + (e.errorTimestamp ? new Date(e.errorTimestamp).toLocaleString() : '') + '</span>' + esc((e.errorCode ? e.errorCode + ' · ' : '') + (e.errorText || '')) + '</li>').join('') + '</ul>';
-        if (sid === 3 && !(st.recordsInserted || st.recordsUpdated)) h += '<div class="msg warn"><b>HiOffice la aceptó pero no insertó ni actualizó ningún registro.</b> Suele pasar cuando las filas no encuentran a qué aplicarse:<ul>'
+        if (sid === 3 && sinCambios(st)) h += '<div class="msg warn"><b>HiOffice la aceptó pero no insertó ni actualizó ningún registro.</b> Suele pasar cuando las filas no encuentran a qué aplicarse:<ul>'
           + '<li>el <b>artículo</b> no se encuentra con el valor enviado (¿se busca por código, referencia o código de barras?);</li>'
           + '<li>el <b>almacén</b> se manda por nombre y la importación espera su código (o al revés);</li>'
           + '<li>el <b>mapeo</b> de la importación en HiOffice no usa las columnas o el separador del archivo;</li>'
           + '<li>los datos ya eran iguales a los que había (no hay nada que actualizar).</li></ul></div>';
-        if (s.raw) h += respDetail(s.raw, sid === 3 && !(st.recordsInserted || st.recordsUpdated)).replace('Detalle de la respuesta de HiOffice', 'Detalle del estado que devuelve HiOffice');
+        if (s.raw) h += respDetail(s.raw, sid === 3 && sinCambios(st)).replace('Detalle de la respuesta de HiOffice', 'Detalle del estado que devuelve HiOffice');
         if (s.rawErr) h += respDetail(s.rawErr, false).replace('Detalle de la respuesta de HiOffice', 'Detalle de los errores que devuelve HiOffice');
         return h + '</div>';
       }).join('') + respDetail(r, false).replace('Detalle de la respuesta de HiOffice', 'Detalle del lanzamiento');
@@ -1566,7 +1568,7 @@ $('imRun').onclick = async () => {
     $('imStop').disabled = true;
     const allOk = state.every(s => s.st && s.st.statusId === 3 && !(s.errors && s.errors.length));
     const anyErr = state.some(s => s.st && s.st.statusId === 2);
-    const noChange = allOk && state.every(s => !(s.st.recordsInserted || s.st.recordsUpdated));
+    const noChange = allOk && state.every(s => sinCambios(s.st));
     out.insertAdjacentHTML('afterbegin', noChange ? '<div class="msg warn"><b>La importación terminó sin errores, pero no cambió ningún registro.</b> Detalle abajo.</div>'
       : allOk ? '<div class="msg ok"><b>La importación funciona.</b> Terminó correctamente.</div>' : anyErr ? '<div class="msg err"><b>La importación terminó con errores.</b> Detalle abajo.</div>' : IM_STOP ? '<div class="msg warn">Consulta detenida.</div>' : '');
   } catch(e){ out.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; $('imStop').disabled = true; }
